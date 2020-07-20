@@ -1,0 +1,18 @@
+name: flutter_exploded
+description: Package which allows you display an exploded view of the render tree of a flutter app.
+version: 0.0.1
+repository: https://github.com/blaugold/flutter_exploded
+issue_tracker: https://github.com/blaugold/flutter_exploded/issues
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.17.0 <2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  vm_service: ^4.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
