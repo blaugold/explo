@@ -5,13 +5,13 @@ import 'transform_widgets.dart';
 
 class ExplodedTreeViewer extends StatefulWidget {
   const ExplodedTreeViewer({
-    @required this.root,
+    required this.root,
     this.includedTypes,
   });
 
   final RenderObjectInfo root;
 
-  final List<String> includedTypes;
+  final List<String>? includedTypes;
 
   @override
   _ExplodedTreeViewerState createState() => _ExplodedTreeViewerState();
@@ -37,7 +37,6 @@ class _ExplodedTreeViewerState extends State<ExplodedTreeViewer> {
               builder: (context, modelTransform) {
                 return SizedBox.expand(
                   child: Stack(
-                    overflow: Overflow.clip,
                     alignment: Alignment.topLeft,
                     clipBehavior: Clip.hardEdge,
                     children: _buildRenderObjectRepresentations(
@@ -92,19 +91,19 @@ class _ExplodedTreeViewerState extends State<ExplodedTreeViewer> {
         transformStack: transformStack.clone(),
       );
     }).toList()
-          ..sort((a, b) => a.level - b.level);
+          ..sort((a, b) => a.level! - b.level!);
   }
 }
 
 class _RenderObjectRepresentation extends StatefulWidget {
   const _RenderObjectRepresentation({
-    @required this.info,
-    @required this.level,
-    @required this.transformStack,
+    required this.info,
+    required this.level,
+    required this.transformStack,
   });
 
   final RenderObjectInfo info;
-  final int level;
+  final int? level;
   final Matrix4 transformStack;
 
   @override
@@ -130,7 +129,7 @@ class _RenderObjectRepresentationState
           ..translate(
             widget.info.paintBounds.left,
             widget.info.paintBounds.top,
-            widget.level * 40.0,
+            widget.level! * 40.0,
           ),
         child: GestureDetector(
           child: FocusableActionDetector(

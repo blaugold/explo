@@ -13,8 +13,8 @@ void registerFlutterExplodedServiceExtension() {
   assert(() {
     registerExtension(getRenderObjectInfoTreeKey, (method, args) async {
       final element = _renderObjectInspectorElements.isNotEmpty
-          ? _renderObjectInspectorElements.last.findRenderObject()
-          : RendererBinding.instance.renderView.child;
+          ? _renderObjectInspectorElements.last.findRenderObject()!
+          : RendererBinding.instance!.renderView.child!;
       final info = captureRenderObjectInfo(element);
       return ServiceExtensionResponse.result(jsonEncode(info.toJson()));
     });
@@ -25,7 +25,7 @@ void registerFlutterExplodedServiceExtension() {
 
 class ExplodedTreeMarker extends StatefulWidget {
   const ExplodedTreeMarker({
-    @required this.child,
+    required this.child,
   });
 
   final Widget child;
@@ -38,7 +38,7 @@ class _ExplodedTreeMarkerState extends State<ExplodedTreeMarker> {
   @override
   void initState() {
     super.initState();
-    _renderObjectInspectorElements.add(context);
+    _renderObjectInspectorElements.add(context as Element);
   }
 
   @override

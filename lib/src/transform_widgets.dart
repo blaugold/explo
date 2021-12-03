@@ -7,7 +7,7 @@ typedef TransformWidgetBuilder = Widget Function(BuildContext, Matrix4);
 
 class CameraTransform extends StatelessWidget {
   const CameraTransform({
-    @required this.builder,
+    required this.builder,
   });
 
   final TransformWidgetBuilder builder;
@@ -55,12 +55,12 @@ class CameraTransform extends StatelessWidget {
 
 class InteractiveModelTransform extends StatefulWidget {
   const InteractiveModelTransform({
-    @required this.modelSize,
-    @required this.scale,
-    @required this.scaleChanged,
-    @required this.scaleLowerLimit,
-    @required this.scaleUpperLimit,
-    @required this.builder,
+    required this.modelSize,
+    required this.scale,
+    required this.scaleChanged,
+    required this.scaleLowerLimit,
+    required this.scaleUpperLimit,
+    required this.builder,
   });
 
   final Size modelSize;
@@ -89,7 +89,8 @@ class _InteractiveModelTransformState extends State<InteractiveModelTransform> {
               LogicalKeySet.fromSet(RawKeyboard.instance.keysPressed) ==
                   LogicalKeySet(LogicalKeyboardKey.altLeft)) {
             final newScale = (widget.scale + e.scrollDelta.dy * .001)
-                .clamp(widget.scaleLowerLimit, widget.scaleUpperLimit);
+                .clamp(widget.scaleLowerLimit, widget.scaleUpperLimit)
+                .toDouble();
             widget.scaleChanged(newScale);
           } else {
             setState(() {

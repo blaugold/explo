@@ -1,16 +1,14 @@
 import 'package:flutter/rendering.dart';
-import 'package:meta/meta.dart';
 
 class RenderObjectInfo {
   RenderObjectInfo({
-    @required this.type,
-    @required this.paintBounds,
-  })  : assert(type != null),
-        assert(paintBounds != null);
+    required this.type,
+    required this.paintBounds,
+  });
 
   final Rect paintBounds;
   final String type;
-  RenderObjectInfo parent;
+  RenderObjectInfo? parent;
   final List<RenderObjectInfo> children = [];
 
   RenderObjectInfo flattenWithPaintBounds() {
@@ -21,7 +19,7 @@ class RenderObjectInfo {
     return this;
   }
 
-  int get level => parent == null ? 0 : parent.level + 1;
+  int get level => parent == null ? 0 : parent!.level + 1;
 
   factory RenderObjectInfo.fromJson(Map<String, dynamic> map) {
     final paintBounds = (map['pb'] as List<dynamic>).cast<double>();
@@ -37,7 +35,7 @@ class RenderObjectInfo {
     );
 
     final children =
-        (map['c'] as List<dynamic>)?.cast<Map<String, dynamic>>() ?? [];
+        (map['c'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
 
     children.forEach((json) {
       final child = RenderObjectInfo.fromJson(json);

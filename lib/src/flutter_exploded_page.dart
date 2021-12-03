@@ -1,9 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart' as vms;
 import 'package:vm_service/vm_service_io.dart';
 
@@ -16,19 +13,19 @@ class _ExplodedAppManager extends ChangeNotifier {
 
   bool get isConnection => _isConnecting;
 
-  vms.VmService _vmService;
+  vms.VmService? _vmService;
 
   bool get isConnected => _vmService != null;
 
-  RenderObjectInfo _tree;
+  RenderObjectInfo? _tree;
 
-  RenderObjectInfo get tree => _tree;
+  RenderObjectInfo? get tree => _tree;
 
   List<String> _allTypes = [];
 
   List<String> get allTypes => List.unmodifiable(_allTypes);
 
-  Timer _pollingTimer;
+  Timer? _pollingTimer;
 
   bool get isPolling => _pollingTimer != null;
 
@@ -55,7 +52,7 @@ class _ExplodedAppManager extends ChangeNotifier {
     if (isConnected)
       setState(() {
         stopPollingTree();
-        _vmService.dispose();
+        _vmService!.dispose();
         _vmService = null;
         _tree = null;
         _allTypes.clear();
@@ -63,7 +60,7 @@ class _ExplodedAppManager extends ChangeNotifier {
   }
 
   Future<void> loadTree() async {
-    _tree = await _vmService.getRenderObjectInfoTree();
+    _tree = await _vmService!.getRenderObjectInfoTree();
 
     final nodes = <RenderObjectInfo>[];
     void collectNode(RenderObjectInfo node) {
@@ -71,7 +68,7 @@ class _ExplodedAppManager extends ChangeNotifier {
       node.children.forEach(collectNode);
     }
 
-    collectNode(_tree);
+    collectNode(_tree!);
     _allTypes = nodes.map((e) => e.type).toSet().toList()..sort();
 
     notifyListeners();
@@ -117,7 +114,7 @@ class _ConnectToVmPage extends StatefulWidget {
 
 class _ConnectToVmPageState extends State<_ConnectToVmPage> {
   final _appManager = _ExplodedAppManager();
-  String _uri;
+  String? _uri;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +164,7 @@ class _ConnectToVmPageState extends State<_ConnectToVmPage> {
   }
 
   void _connect() async {
-    await _appManager.connectToClient(_uri);
+    await _appManager.connectToClient(_uri!);
 
     await Navigator.push(context, MaterialPageRoute(builder: (_) {
       return ExplodedTreeViewerPage(appManager: _appManager);
@@ -179,8 +176,8 @@ class _ConnectToVmPageState extends State<_ConnectToVmPage> {
 
 class ExplodedTreeViewerPage extends StatefulWidget {
   const ExplodedTreeViewerPage({
-    @required this.appManager,
-  }) : assert(appManager != null);
+    required this.appManager,
+  });
 
   final _ExplodedAppManager appManager;
 
@@ -234,7 +231,7 @@ class ExplodedTreeViewerPageState extends State<ExplodedTreeViewerPage> {
                   children: [
                     Expanded(
                       child: ExplodedTreeViewer(
-                        root: widget.appManager.tree,
+                        root: widget.appManager.tree!,
                         includedTypes: _includedTypes,
                       ),
                     ),
@@ -250,7 +247,7 @@ class ExplodedTreeViewerPageState extends State<ExplodedTreeViewerPage> {
                               setState(() {
                                 _includedTypes.clear();
 
-                                if (all) {
+                                if (all!) {
                                   _includedTypes.addAll(allTypes);
                                 }
                               });
@@ -270,7 +267,7 @@ class ExplodedTreeViewerPageState extends State<ExplodedTreeViewerPage> {
                                   value: _includedTypes.contains(type),
                                   onChanged: (included) {
                                     setState(() {
-                                      if (included)
+                                      if (included!)
                                         _includedTypes.add(type);
                                       else
                                         _includedTypes.remove(type);

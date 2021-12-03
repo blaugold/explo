@@ -5,11 +5,11 @@ import 'render_object_info.dart';
 
 Future<RenderObjectInfo> getRenderObjectInfoTree(
   VmService vmService, {
-  String isolateId,
+  String? isolateId,
 }) async {
   if (isolateId == null) {
     final vm = await vmService.getVM();
-    isolateId = vm.isolates.first.id;
+    isolateId = vm.isolates!.first.id;
   }
 
   final result = await vmService.callServiceExtension(
@@ -17,12 +17,12 @@ Future<RenderObjectInfo> getRenderObjectInfoTree(
     isolateId: isolateId,
   );
 
-  return RenderObjectInfo.fromJson(result.json);
+  return RenderObjectInfo.fromJson(result.json!);
 }
 
 const _getRenderObjectInfoTree = getRenderObjectInfoTree;
 
 extension FlutterExplodedClientExtension on VmService {
-  Future<RenderObjectInfo> getRenderObjectInfoTree({String isolateId}) =>
+  Future<RenderObjectInfo> getRenderObjectInfoTree({String? isolateId}) =>
       _getRenderObjectInfoTree(this, isolateId: isolateId);
 }
