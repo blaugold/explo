@@ -77,7 +77,7 @@ class _ExplodedAppManager extends ChangeNotifier {
   void startPollingTree() {
     if (!isPolling)
       setState(() {
-        _pollingTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        _pollingTimer = Timer.periodic(Duration(milliseconds: 150), (timer) {
           loadTree();
         });
       });
@@ -98,6 +98,8 @@ class _ExplodedAppManager extends ChangeNotifier {
 }
 
 class FlutterExplodedPage extends StatefulWidget {
+  const FlutterExplodedPage({Key? key}) : super(key: key);
+
   @override
   _FlutterExplodedPageState createState() => _FlutterExplodedPageState();
 }
