@@ -5,7 +5,7 @@
 This package allows you to display an exploded view of the render tree of a
 Flutter app.
 
-<img src="doc/images/flutter_explode_demo.gif">
+<img src="https://github.com/blaugold/flutter_exploded/raw/master/doc/images/flutter_explode_demo.gif">
 
 # Getting Started
 
