@@ -1,0 +1,8 @@
+name: flutter_exploded
+repository: https://github.com/blaugold/flutter_exploded
+packages:
+  - '*'
+
+command:
+  version:
+    linkToCommits: true
