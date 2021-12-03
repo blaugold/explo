@@ -78,6 +78,7 @@ class _ExplodedAppManager extends ChangeNotifier {
     if (_tree == null) {
       // It's possible that the ExplodedTreeMarker has not been inserted yet
       // into the app yet.
+      notifyListeners();
       return;
     }
 

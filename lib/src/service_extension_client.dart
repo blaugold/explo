@@ -17,8 +17,14 @@ Future<RenderObjectInfo?> getRenderObjectInfoTree(
       getRenderObjectInfoTreeMethod,
       isolateId: isolateId,
     );
+    final json = result.json;
 
-    return RenderObjectInfo.fromJson(result.json!);
+    if (json == null || json.isEmpty) {
+      // Null is returned if no element has been marked for visualization.
+      return null;
+    }
+
+    return RenderObjectInfo.fromJson(json);
   } on RPCError catch (e) {
     // The service extension probably has not been registered yet, because the
     // ExplodedTreeMarker has not yet been added to the widget tree.

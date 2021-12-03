@@ -39,7 +39,7 @@ void _registerServiceExtension() {
     final renderObject = _markedElements.lastOrNull?.findRenderObject();
 
     if (renderObject == null) {
-      return ServiceExtensionResponse.result('null');
+      return ServiceExtensionResponse.result('{}');
     }
 
     final info = captureRenderObjectInfo(renderObject);
