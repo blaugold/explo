@@ -1,6 +1,6 @@
 name: flutter_exploded
 description: Display an exploded view of the render tree of a Flutter app.
-version: 0.1.0
+version: 0.1.0+1
 repository: https://github.com/blaugold/flutter_exploded
 issue_tracker: https://github.com/blaugold/flutter_exploded/issues
 
