@@ -4,9 +4,23 @@ import 'package:flutter/material.dart';
 import 'package:vm_service/vm_service.dart' as vms;
 import 'package:vm_service/vm_service_io.dart';
 
-import 'client.dart';
 import 'exploded_tree_viewer.dart';
 import 'render_object_info.dart';
+import 'service_extension_client.dart';
+
+/// A widget that presents the visualization of the render tree, as well
+/// as a page to connect to the target app.
+class FlutterExplodedPage extends StatefulWidget {
+  const FlutterExplodedPage({Key? key}) : super(key: key);
+
+  @override
+  _FlutterExplodedPageState createState() => _FlutterExplodedPageState();
+}
+
+class _FlutterExplodedPageState extends State<FlutterExplodedPage> {
+  @override
+  Widget build(BuildContext context) => _ConnectToVmPage();
+}
 
 class _ExplodedAppManager extends ChangeNotifier {
   bool _isConnecting = false;
@@ -61,6 +75,11 @@ class _ExplodedAppManager extends ChangeNotifier {
 
   Future<void> loadTree() async {
     _tree = await _vmService!.getRenderObjectInfoTree();
+    if (_tree == null) {
+      // It's possible that the ExplodedTreeMarker has not been inserted yet
+      // into the app yet.
+      return;
+    }
 
     final nodes = <RenderObjectInfo>[];
     void collectNode(RenderObjectInfo node) {
@@ -95,18 +114,6 @@ class _ExplodedAppManager extends ChangeNotifier {
     cb();
     notifyListeners();
   }
-}
-
-class FlutterExplodedPage extends StatefulWidget {
-  const FlutterExplodedPage({Key? key}) : super(key: key);
-
-  @override
-  _FlutterExplodedPageState createState() => _FlutterExplodedPageState();
-}
-
-class _FlutterExplodedPageState extends State<FlutterExplodedPage> {
-  @override
-  Widget build(BuildContext context) => _ConnectToVmPage();
 }
 
 class _ConnectToVmPage extends StatefulWidget {
@@ -169,25 +176,25 @@ class _ConnectToVmPageState extends State<_ConnectToVmPage> {
     await _appManager.connectToClient(_uri!);
 
     await Navigator.push(context, MaterialPageRoute(builder: (_) {
-      return ExplodedTreeViewerPage(appManager: _appManager);
+      return _ExplodedTreeViewerPage(appManager: _appManager);
     }));
 
     _appManager.disconnect();
   }
 }
 
-class ExplodedTreeViewerPage extends StatefulWidget {
-  const ExplodedTreeViewerPage({
+class _ExplodedTreeViewerPage extends StatefulWidget {
+  const _ExplodedTreeViewerPage({
     required this.appManager,
   });
 
   final _ExplodedAppManager appManager;
 
   @override
-  ExplodedTreeViewerPageState createState() => ExplodedTreeViewerPageState();
+  _ExplodedTreeViewerPageState createState() => _ExplodedTreeViewerPageState();
 }
 
-class ExplodedTreeViewerPageState extends State<ExplodedTreeViewerPage> {
+class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
   static const kDefaultIncludedTypes = [
     'RenderCustomPaint',
     'RenderDecoratedBox',

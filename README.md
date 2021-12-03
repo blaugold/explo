@@ -22,20 +22,7 @@ dependencies:
   flutter_exploded: ...
 ```
 
-Then register the `flutter_exploded` service extension:
-
-```dart
-import 'package:flutter_exploded/flutter_exploded.dart';
-
-void main() {
-    WidgetsFlutterBinding.ensureInitialized();
-    registerFlutterExplodedServiceExtension();
-    runApp(MyApp());
-}
-```
-
-The last step is to mark subtrees of the app's widget tree that you want to
-visualize:
+Then mark subtrees of the app's widget tree that you want to visualize:
 
 ```dart
 import 'package:flutter_exploded/flutter_exploded.dart';
@@ -54,7 +41,7 @@ dependencies:
   flutter_exploded: ...
 ```
 
-And then place display the `FlutterExplodedPage` somewhere:
+Then display the `FlutterExplodedPage` somewhere:
 
 ```dart
 import 'package:flutter/material.dart';
