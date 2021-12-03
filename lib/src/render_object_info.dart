@@ -37,11 +37,11 @@ class RenderObjectInfo {
     final children =
         (map['c'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
 
-    children.forEach((json) {
+    for (var json in children) {
       final child = RenderObjectInfo.fromJson(json);
       info.children.add(child);
       child.parent = info;
-    });
+    }
 
     return info;
   }

@@ -7,8 +7,9 @@ typedef TransformWidgetBuilder = Widget Function(BuildContext, Matrix4);
 
 class CameraTransform extends StatelessWidget {
   const CameraTransform({
+    Key? key,
     required this.builder,
-  });
+  }) : super(key: key);
 
   final TransformWidgetBuilder builder;
 
@@ -49,7 +50,8 @@ class CameraTransform extends StatelessWidget {
       vm.Vector3(0, 1, 0),
     );
 
-    return viewportTransform * perspectiveTransform * viewTransform;
+    return (viewportTransform * perspectiveTransform * viewTransform)
+        as Matrix4;
   }
 }
 
@@ -112,15 +114,15 @@ class _InteractiveModelTransformState extends State<InteractiveModelTransform> {
     );
   }
 
-  Matrix4 _buildModelTransform() {
-    return Matrix4.translationValues(_offset.dx, _offset.dy, 0) *
-        Matrix4.rotationX(vm.radians(_rotationX)) *
-        Matrix4.rotationY(vm.radians(_rotationY)) *
-        (Matrix4.identity()..scale(widget.scale, widget.scale, widget.scale)) *
-        Matrix4.translationValues(
-          -widget.modelSize.width / 2,
-          -widget.modelSize.height / 2,
-          0,
-        );
-  }
+  Matrix4 _buildModelTransform() =>
+      (Matrix4.translationValues(_offset.dx, _offset.dy, 0) *
+          Matrix4.rotationX(vm.radians(_rotationX)) *
+          Matrix4.rotationY(vm.radians(_rotationY)) *
+          (Matrix4.identity()
+            ..scale(widget.scale, widget.scale, widget.scale)) *
+          Matrix4.translationValues(
+            -widget.modelSize.width / 2,
+            -widget.modelSize.height / 2,
+            0,
+          )) as Matrix4;
 }

@@ -54,6 +54,7 @@ class _ExplodedAppManager extends ChangeNotifier {
       _vmService = await vmServiceConnectUri(uri);
       await loadTree();
     } catch (e) {
+      // ignore: avoid_print
       print(e);
     } finally {
       setState(() {
@@ -63,7 +64,7 @@ class _ExplodedAppManager extends ChangeNotifier {
   }
 
   void disconnect() {
-    if (isConnected)
+    if (isConnected) {
       setState(() {
         stopPollingTree();
         _vmService!.dispose();
@@ -71,6 +72,7 @@ class _ExplodedAppManager extends ChangeNotifier {
         _tree = null;
         _allTypes.clear();
       });
+    }
   }
 
   Future<void> loadTree() async {
@@ -95,20 +97,23 @@ class _ExplodedAppManager extends ChangeNotifier {
   }
 
   void startPollingTree() {
-    if (!isPolling)
+    if (!isPolling) {
       setState(() {
-        _pollingTimer = Timer.periodic(Duration(milliseconds: 150), (timer) {
+        _pollingTimer =
+            Timer.periodic(const Duration(milliseconds: 150), (timer) {
           loadTree();
         });
       });
+    }
   }
 
   void stopPollingTree() {
-    if (isPolling)
+    if (isPolling) {
       setState(() {
         _pollingTimer?.cancel();
         _pollingTimer = null;
       });
+    }
   }
 
   void setState(void Function() cb) {
@@ -133,30 +138,30 @@ class _ConnectToVmPageState extends State<_ConnectToVmPage> {
       builder: (context, _) {
         return Scaffold(
           appBar: AppBar(
-            title: Text('Connect to App'),
+            title: const Text('Connect to App'),
           ),
           body: Stack(
             children: [
               Center(
                 child: Container(
-                  padding: EdgeInsets.all(20),
-                  constraints: BoxConstraints(maxWidth: 500),
+                  padding: const EdgeInsets.all(20),
+                  constraints: const BoxConstraints(maxWidth: 500),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: TextFormField(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'VM Service URI',
                             border: OutlineInputBorder(),
                           ),
                           onChanged: (uri) => setState(() => _uri = uri),
                         ),
                       ),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       ElevatedButton(
-                        child: Text('Connect'),
+                        child: const Text('Connect'),
                         onPressed:
                             (_uri?.isNotEmpty ?? false) ? _connect : null,
                       ),
@@ -165,7 +170,7 @@ class _ConnectToVmPageState extends State<_ConnectToVmPage> {
                 ),
               ),
               if (_appManager.isConnected)
-                Center(child: CircularProgressIndicator())
+                const Center(child: CircularProgressIndicator())
             ],
           ),
         );
@@ -176,7 +181,7 @@ class _ConnectToVmPageState extends State<_ConnectToVmPage> {
   void _connect() async {
     await _appManager.connectToClient(_uri!);
 
-    await Navigator.push(context, MaterialPageRoute(builder: (_) {
+    await Navigator.push<void>(context, MaterialPageRoute(builder: (_) {
       return _ExplodedTreeViewerPage(appManager: _appManager);
     }));
 
@@ -206,7 +211,7 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
     'RenderPhysicalShape',
   ];
 
-  List<String> _includedTypes = [];
+  final List<String> _includedTypes = [];
 
   @override
   void initState() {
@@ -224,7 +229,7 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
           appBar: AppBar(
             actions: [
               IconButton(
-                icon: Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh),
                 onPressed: () => widget.appManager.loadTree(),
               ),
               IconButton(
@@ -236,7 +241,7 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
             ],
           ),
           body: widget.appManager.tree == null
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : Row(
                   children: [
                     Expanded(
@@ -251,7 +256,7 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
                         children: [
                           CheckboxListTile(
                             value: allTypes.length == _includedTypes.length,
-                            title: Text('All'),
+                            title: const Text('All'),
                             dense: true,
                             onChanged: (all) {
                               setState(() {
@@ -277,10 +282,11 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
                                   value: _includedTypes.contains(type),
                                   onChanged: (included) {
                                     setState(() {
-                                      if (included!)
+                                      if (included!) {
                                         _includedTypes.add(type);
-                                      else
+                                      } else {
                                         _includedTypes.remove(type);
+                                      }
                                     });
                                   },
                                 );
@@ -298,9 +304,10 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
   }
 
   void _toggleAutoRefresh() {
-    if (!widget.appManager.isPolling)
+    if (!widget.appManager.isPolling) {
       widget.appManager.startPollingTree();
-    else
+    } else {
       widget.appManager.stopPollingTree();
+    }
   }
 }

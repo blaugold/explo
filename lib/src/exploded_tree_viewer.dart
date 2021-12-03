@@ -5,9 +5,10 @@ import 'transform_widgets.dart';
 
 class ExplodedTreeViewer extends StatefulWidget {
   const ExplodedTreeViewer({
+    Key? key,
     required this.root,
     this.includedTypes,
-  });
+  }) : super(key: key);
 
   final RenderObjectInfo root;
 
@@ -19,8 +20,8 @@ class ExplodedTreeViewer extends StatefulWidget {
 
 class _ExplodedTreeViewerState extends State<ExplodedTreeViewer> {
   double _scale = 1;
-  double _scaleLowerLimit = .25;
-  double _scaleUpperLimit = 4;
+  final double _scaleLowerLimit = .25;
+  final double _scaleUpperLimit = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,8 @@ class _ExplodedTreeViewerState extends State<ExplodedTreeViewer> {
                     alignment: Alignment.topLeft,
                     clipBehavior: Clip.hardEdge,
                     children: _buildRenderObjectRepresentations(
-                        cameraTransform * modelTransform),
+                      (cameraTransform * modelTransform) as Matrix4,
+                    ),
                   ),
                 );
               },
@@ -158,10 +160,10 @@ class _RenderObjectRepresentationState
                 ),
                 if (_hovered || _focused)
                   FractionalTranslation(
-                    translation: Offset(0, -1),
+                    translation: const Offset(0, -1),
                     child: Text(
                       widget.info.type,
-                      style: TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ),
               ],
