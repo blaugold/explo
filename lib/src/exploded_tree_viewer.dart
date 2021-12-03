@@ -91,7 +91,7 @@ class _ExplodedTreeViewerState extends State<ExplodedTreeViewer> {
         transformStack: transformStack.clone(),
       );
     }).toList()
-          ..sort((a, b) => a.level! - b.level!);
+      ..sort((a, b) => a.level! - b.level!);
   }
 }
 
