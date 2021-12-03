@@ -19,7 +19,7 @@ as a dependency:
 
 ```yaml
 dependencies:
-  flutter_explode: ...
+  flutter_exploded: ...
 ```
 
 Then register the `flutter_exploded` service extension:
@@ -51,7 +51,7 @@ Again, add `flutter_exploded` as a dependency:
 
 ```yaml
 dependencies:
-  flutter_explode: ...
+  flutter_exploded: ...
 ```
 
 And then place display the `FlutterExplodedPage` somewhere:
