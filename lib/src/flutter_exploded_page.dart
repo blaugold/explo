@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:vm_service/vm_service.dart' as vms;
-import 'package:vm_service/vm_service_io.dart';
 
 import 'exploded_tree_viewer.dart';
 import 'render_object_info.dart';
 import 'service_extension_client.dart';
+import 'vm_service_utils.dart';
 
 /// A widget that presents the visualization of the render tree, as well
 /// as a page to connect to the target app.
