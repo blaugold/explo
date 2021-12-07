@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart' as vm;
 import 'package:vm_service/vm_service.dart' as vms;
 
-import 'exploded_tree_viewer.dart';
-import 'render_object_info.dart';
+import 'render_object_data.dart';
+import 'scene_render_tree.dart';
+import 'scene_viewport.dart';
 import 'service_extension_client.dart';
 import 'vm_service_utils.dart';
 
@@ -31,9 +33,9 @@ class _ExplodedAppManager extends ChangeNotifier {
 
   bool get isConnected => _vmService != null;
 
-  RenderObjectInfo? _tree;
+  RenderObjectData? _tree;
 
-  RenderObjectInfo? get tree => _tree;
+  RenderObjectData? get tree => _tree;
 
   List<String> _allTypes = [];
 
@@ -76,7 +78,7 @@ class _ExplodedAppManager extends ChangeNotifier {
   }
 
   Future<void> loadTree() async {
-    _tree = await _vmService!.getRenderObjectInfoTree();
+    _tree = await _vmService!.getRenderObjectDataTree();
     if (_tree == null) {
       // It's possible that the ExplodedTreeMarker has not been inserted yet
       // into the app yet.
@@ -84,8 +86,8 @@ class _ExplodedAppManager extends ChangeNotifier {
       return;
     }
 
-    final nodes = <RenderObjectInfo>[];
-    void collectNode(RenderObjectInfo node) {
+    final nodes = <RenderObjectData>[];
+    void collectNode(RenderObjectData node) {
       nodes.add(node);
       node.children.forEach(collectNode);
     }
@@ -209,22 +211,23 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
     'RenderPhysicalModel',
     'RenderPhysicalShape',
     'RenderPhysicalShape',
+    '_RenderColoredBox',
   ];
 
-  final List<String> _includedTypes = [];
+  var _types = kDefaultIncludedTypes;
 
-  @override
-  void initState() {
-    super.initState();
-    _includedTypes.addAll(kDefaultIncludedTypes);
-  }
+  final _modelController = TransformController(
+    rotationX: -15,
+    rotationY: 15,
+  )..scale = .4;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: widget.appManager,
       builder: (context, _) {
-        final allTypes = widget.appManager.allTypes;
+        final tree = widget.appManager.tree;
+
         return Scaffold(
           appBar: AppBar(
             actions: [
@@ -240,62 +243,40 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
               )
             ],
           ),
-          body: widget.appManager.tree == null
+          body: tree == null
               ? const Center(child: CircularProgressIndicator())
               : Row(
                   children: [
                     Expanded(
-                      child: ExplodedTreeViewer(
-                        root: widget.appManager.tree!,
-                        includedTypes: _includedTypes,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 250,
-                      child: Column(
-                        children: [
-                          CheckboxListTile(
-                            value: allTypes.length == _includedTypes.length,
-                            title: const Text('All'),
-                            dense: true,
-                            onChanged: (all) {
-                              setState(() {
-                                _includedTypes.clear();
-
-                                if (all!) {
-                                  _includedTypes.addAll(allTypes);
-                                }
-                              });
-                            },
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: allTypes.length,
-                              itemBuilder: (context, i) {
-                                final type = allTypes[i];
-                                return CheckboxListTile(
-                                  dense: true,
-                                  title: Text(
-                                    type,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  value: _includedTypes.contains(type),
-                                  onChanged: (included) {
-                                    setState(() {
-                                      if (included!) {
-                                        _includedTypes.add(type);
-                                      } else {
-                                        _includedTypes.remove(type);
-                                      }
-                                    });
-                                  },
-                                );
-                              },
+                      child: ModelInteraction(
+                        scaleMin: .01,
+                        scaleMax: 2,
+                        controller: _modelController,
+                        child: SceneViewport(children: [
+                          ControllerTransform(
+                            controller: _modelController,
+                            child: CenterTransform(
+                              size: vm.Vector3(
+                                tree.paintBounds.width,
+                                tree.paintBounds.height,
+                                1,
+                              ),
+                              child: SceneRenderTree(
+                                root: tree,
+                                types: _types,
+                              ),
                             ),
-                          ),
-                        ],
+                          )
+                        ]),
                       ),
                     ),
+                    _RenderObjectTypeFilter(
+                      types: widget.appManager.allTypes,
+                      selected: _types,
+                      onChanged: (selected) => setState(() {
+                        _types = selected;
+                      }),
+                    )
                   ],
                 ),
         );
@@ -309,5 +290,62 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
     } else {
       widget.appManager.stopPollingTree();
     }
+  }
+}
+
+class _RenderObjectTypeFilter extends StatelessWidget {
+  const _RenderObjectTypeFilter({
+    Key? key,
+    required this.types,
+    required this.selected,
+    required this.onChanged,
+  }) : super(key: key);
+
+  final List<String> types;
+  final List<String> selected;
+  final ValueChanged<List<String>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 250,
+      child: Column(
+        children: [
+          CheckboxListTile(
+            value: types.length == selected.length,
+            title: const Text('All'),
+            dense: true,
+            onChanged: (all) {
+              onChanged(all! ? types : []);
+            },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: types.length,
+              itemBuilder: (context, i) {
+                final type = types[i];
+                return CheckboxListTile(
+                  dense: true,
+                  title: Text(
+                    type,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  value: selected.contains(type),
+                  onChanged: (included) {
+                    final newSelected = selected.toList();
+                    if (included!) {
+                      newSelected.add(type);
+                    } else {
+                      newSelected.remove(type);
+                    }
+                    onChanged(newSelected);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

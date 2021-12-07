@@ -4,10 +4,10 @@ import 'dart:developer';
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
-import 'render_object_info.dart';
+import 'render_object_data.dart';
 
-const getRenderObjectInfoTreeMethod =
-    'ext.flutter_exploded.getRenderObjectInfoTree';
+const getRenderObjectDataTreeMethod =
+    'ext.flutter_exploded.getRenderObjectDataTree';
 
 List<Element> _markedElements = [];
 
@@ -35,14 +35,14 @@ void _ensureServiceExtensionIsRegistered() {
 }
 
 void _registerServiceExtension() {
-  registerExtension(getRenderObjectInfoTreeMethod, (method, args) async {
+  registerExtension(getRenderObjectDataTreeMethod, (method, args) async {
     final renderObject = _markedElements.lastOrNull?.findRenderObject();
 
     if (renderObject == null) {
       return ServiceExtensionResponse.result('{}');
     }
 
-    final info = captureRenderObjectInfo(renderObject);
-    return ServiceExtensionResponse.result(jsonEncode(info.toJson()));
+    final data = RenderObjectData.capture(renderObject);
+    return ServiceExtensionResponse.result(jsonEncode(data.toJson()));
   });
 }

@@ -1,9 +1,9 @@
 import 'package:vm_service/vm_service.dart';
 
-import 'render_object_info.dart';
+import 'render_object_data.dart';
 import 'service_extension.dart';
 
-Future<RenderObjectInfo?> getRenderObjectInfoTree(
+Future<RenderObjectData?> getRenderObjectDataTree(
   VmService vmService, {
   String? isolateId,
 }) async {
@@ -14,7 +14,7 @@ Future<RenderObjectInfo?> getRenderObjectInfoTree(
 
   try {
     final result = await vmService.callServiceExtension(
-      getRenderObjectInfoTreeMethod,
+      getRenderObjectDataTreeMethod,
       isolateId: isolateId,
     );
     final json = result.json;
@@ -24,7 +24,7 @@ Future<RenderObjectInfo?> getRenderObjectInfoTree(
       return null;
     }
 
-    return RenderObjectInfo.fromJson(json);
+    return RenderObjectData.fromJson(json);
   } on RPCError catch (e) {
     // The service extension probably has not been registered yet, because the
     // ExplodedTreeMarker has not yet been added to the widget tree.
@@ -36,9 +36,9 @@ Future<RenderObjectInfo?> getRenderObjectInfoTree(
   }
 }
 
-const _getRenderObjectInfoTree = getRenderObjectInfoTree;
+const _getRenderObjectDataTree = getRenderObjectDataTree;
 
 extension FlutterExplodedClientExtension on VmService {
-  Future<RenderObjectInfo?> getRenderObjectInfoTree({String? isolateId}) =>
-      _getRenderObjectInfoTree(this, isolateId: isolateId);
+  Future<RenderObjectData?> getRenderObjectDataTree({String? isolateId}) =>
+      _getRenderObjectDataTree(this, isolateId: isolateId);
 }
