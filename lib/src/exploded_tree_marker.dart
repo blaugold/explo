@@ -2,32 +2,34 @@ import 'package:flutter/cupertino.dart';
 
 import 'service_extension.dart';
 
-/// Marks the [child] subtree to be available for visualization.
+/// Captures the render tree of the widgets below [child], for visualization
+/// with `flutter_exploded`.
 ///
-/// If multiple widgets are marked, only the last one will be visualized.
-class ExplodedTreeMarker extends StatefulWidget {
-  const ExplodedTreeMarker({
+/// If multiple [CaptureRenderTree]s are in the widget tree, only the last one
+/// inserted will be captured.
+class CaptureRenderTree extends StatefulWidget {
+  const CaptureRenderTree({
     Key? key,
     required this.child,
   }) : super(key: key);
 
-  /// The root of the widget tree to be marked for visualization.
+  /// The root of the widget tree to be captured for visualization.
   final Widget child;
 
   @override
-  _ExplodedTreeMarkerState createState() => _ExplodedTreeMarkerState();
+  _CaptureRenderTreeState createState() => _CaptureRenderTreeState();
 }
 
-class _ExplodedTreeMarkerState extends State<ExplodedTreeMarker> {
+class _CaptureRenderTreeState extends State<CaptureRenderTree> {
   @override
   void initState() {
     super.initState();
-    addMarkedElement(context as Element);
+    startCapturingRenderTree(context as Element);
   }
 
   @override
   void dispose() {
-    removeMarkedElement(context as Element);
+    stopCapturingRenderTree(context as Element);
     super.dispose();
   }
 

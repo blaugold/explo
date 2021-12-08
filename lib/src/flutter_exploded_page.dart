@@ -29,9 +29,11 @@ class _ExplodedAppManager extends ChangeNotifier {
 
   bool get isConnection => _isConnecting;
 
+  bool get isConnected => _vmService != null;
+
   vms.VmService? _vmService;
 
-  bool get isConnected => _vmService != null;
+  FlutterExplodedServiceClient? _client;
 
   RenderObjectData? _tree;
 
@@ -41,9 +43,9 @@ class _ExplodedAppManager extends ChangeNotifier {
 
   List<String> get allTypes => List.unmodifiable(_allTypes);
 
-  Timer? _pollingTimer;
+  StreamSubscription? _watchSub;
 
-  bool get isPolling => _pollingTimer != null;
+  bool get isWatching => _watchSub != null;
 
   Future<void> connectToClient(String uri) async {
     if (_isConnecting) return;
@@ -54,22 +56,39 @@ class _ExplodedAppManager extends ChangeNotifier {
 
     try {
       _vmService = await vmServiceConnectUri(uri);
-      await loadTree();
+
+      final vm = await _vmService!.getVM();
+      final isolateId = vm.isolates!.first.id!;
+
+      _client = FlutterExplodedServiceClient(
+        vmService: _vmService!,
+        isolateId: isolateId,
+        onExtensionRegistered: () async {
+          await loadTree();
+          startWatchingTree();
+          setState(() {
+            _isConnecting = false;
+          });
+        },
+      );
+      await _client!.init();
     } catch (e) {
       // ignore: avoid_print
       print(e);
-    } finally {
       setState(() {
         _isConnecting = false;
       });
     }
   }
 
-  void disconnect() {
+  void disconnect() async {
     if (isConnected) {
+      await stopWatchingTree();
+      await _client!.dispose();
+      await _vmService!.dispose();
+
       setState(() {
-        stopPollingTree();
-        _vmService!.dispose();
+        _client = null;
         _vmService = null;
         _tree = null;
         _allTypes.clear();
@@ -78,10 +97,37 @@ class _ExplodedAppManager extends ChangeNotifier {
   }
 
   Future<void> loadTree() async {
-    _tree = await _vmService!.getRenderObjectDataTree();
-    if (_tree == null) {
-      // It's possible that the ExplodedTreeMarker has not been inserted yet
-      // into the app yet.
+    final tree = await _client!.getRenderTree();
+    _updateTree(tree);
+  }
+
+  void startWatchingTree() {
+    if (!isWatching) {
+      setState(() {
+        _watchSub = _client!.renderTreeChanged().listen(_updateTree);
+      });
+    }
+  }
+
+  Future<void> stopWatchingTree() async {
+    if (isWatching) {
+      await _watchSub?.cancel();
+      setState(() {
+        _watchSub = null;
+      });
+    }
+  }
+
+  void setState(void Function() cb) {
+    cb();
+    notifyListeners();
+  }
+
+  void _updateTree(RenderObjectData? tree) {
+    _tree = tree;
+
+    if (tree == null) {
+      // It's possible that no CaptureRenderTree is currently in the app.
       notifyListeners();
       return;
     }
@@ -95,31 +141,6 @@ class _ExplodedAppManager extends ChangeNotifier {
     collectNode(_tree!);
     _allTypes = nodes.map((e) => e.type).toSet().toList()..sort();
 
-    notifyListeners();
-  }
-
-  void startPollingTree() {
-    if (!isPolling) {
-      setState(() {
-        _pollingTimer =
-            Timer.periodic(const Duration(milliseconds: 150), (timer) {
-          loadTree();
-        });
-      });
-    }
-  }
-
-  void stopPollingTree() {
-    if (isPolling) {
-      setState(() {
-        _pollingTimer?.cancel();
-        _pollingTimer = null;
-      });
-    }
-  }
-
-  void setState(void Function() cb) {
-    cb();
     notifyListeners();
   }
 }
@@ -237,7 +258,7 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
               ),
               IconButton(
                 icon: Icon(
-                  widget.appManager.isPolling ? Icons.stop : Icons.play_arrow,
+                  widget.appManager.isWatching ? Icons.stop : Icons.play_arrow,
                 ),
                 onPressed: _toggleAutoRefresh,
               )
@@ -285,10 +306,10 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
   }
 
   void _toggleAutoRefresh() {
-    if (!widget.appManager.isPolling) {
-      widget.appManager.startPollingTree();
+    if (!widget.appManager.isWatching) {
+      widget.appManager.startWatchingTree();
     } else {
-      widget.appManager.stopPollingTree();
+      widget.appManager.stopWatchingTree();
     }
   }
 }

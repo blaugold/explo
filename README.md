@@ -22,12 +22,12 @@ dependencies:
   flutter_exploded: ...
 ```
 
-Then mark subtrees of the app's widget tree that you want to visualize:
+Then capture the render tree of the app's widget tree that you want to visualize:
 
 ```dart
 import 'package:flutter_exploded/flutter_exploded.dart';
 
-ExplodedTreeMarker(
+CaptureRenderTree(
     child: MyInterestingAppComponent(),
 );
 ```

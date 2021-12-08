@@ -1,3 +1,6 @@
+import 'dart:collection';
+import 'dart:developer';
+
 import 'package:flutter/rendering.dart';
 
 /// Data of a [RenderObject] and its [children], that is used to render the
@@ -15,20 +18,59 @@ class RenderObjectData {
   /// Captures the [RenderObjectData] for the given [renderObject] and its
   /// children.
   factory RenderObjectData.capture(RenderObject renderObject) {
-    final transform = renderObject.getTransformTo(null);
-    final data = RenderObjectData(
-      type: renderObject.runtimeType.toString(),
-      paintBounds:
-          MatrixUtils.transformRect(transform, renderObject.paintBounds),
-    );
+    // Note on performance: If this function becomes a bottleneck, we can
+    // consider capturing geometry data only for render objects we are going
+    // to display. For all others, we would not need to calculate the transform
+    // and paint bounds in global coordinates.
 
-    renderObject.visitChildren((child) {
-      final childData = RenderObjectData.capture(child);
-      data.children.add(childData);
-      childData.parent = data;
+    Timeline.startSync('RenderObjectData.capture', arguments: <String, Object?>{
+      'renderObject': renderObject.runtimeType.toString(),
     });
 
-    return data;
+    // The RenderObjects for which to capture data, mapped to the data of their
+    // parents.
+    final workingSet = HashMap<RenderObject, RenderObjectData>();
+
+    RenderObjectData createData(
+      RenderObject renderObject,
+      RenderObjectData? parent,
+    ) {
+      var transform = renderObject.getTransformTo(parent?._renderObject);
+      if (parent != null) {
+        transform = (parent._transform * transform) as Matrix4;
+      }
+
+      final data = RenderObjectData(
+        type: renderObject.runtimeType.toString(),
+        paintBounds:
+            MatrixUtils.transformRect(transform, renderObject.paintBounds),
+      )
+        .._renderObject = renderObject
+        .._transform = transform;
+
+      if (parent != null) {
+        parent.children.add(data);
+        data.parent = parent;
+      }
+
+      renderObject.visitChildren((child) {
+        workingSet[child] = data;
+      });
+
+      return data;
+    }
+
+    final rootData = createData(renderObject, null);
+
+    while (workingSet.isNotEmpty) {
+      final renderObject = workingSet.keys.first;
+      final parentData = workingSet.remove(renderObject);
+      createData(renderObject, parentData);
+    }
+
+    Timeline.finishSync();
+
+    return rootData;
   }
 
   /// Deserializes a [RenderObjectData] and its children from the given [json].
@@ -56,6 +98,10 @@ class RenderObjectData {
 
     return data;
   }
+
+  // Internal state, used while capturing the render tree.
+  late final RenderObject _renderObject;
+  late final Matrix4 _transform;
 
   /// The runtime type of the [RenderObject].
   final String type;
