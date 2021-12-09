@@ -1,3 +1,13 @@
+## 0.1.2
+
+ - **REFACTOR**: create reusable components. ([26bcc961](https://github.com/blaugold/flutter_exploded/commit/26bcc961dc0f1133170ba0eee93be0f692a9563b))
+ - **FIX**: viewport clipping and model interaction. ([b1ee029b](https://github.com/blaugold/flutter_exploded/commit/b1ee029b40a644a46503fb59699ba53043f8e114))
+ - **FEAT**: add `View` menu for viewport. ([cdd16220](https://github.com/blaugold/flutter_exploded/commit/cdd162200225112741ee2e177f6e4345ae5b15de))
+ - **FEAT**: `RenderObjectStyle` for visual style of render object visualization. ([425bf116](https://github.com/blaugold/flutter_exploded/commit/425bf116f33ae3769146fa985970284c34bd8fdb))
+ - **FEAT**: post render tree from app after each frame. ([70b5ba24](https://github.com/blaugold/flutter_exploded/commit/70b5ba24253a8091c0b00c2b2bc956994dd65f39))
+ - **FEAT**: support web platform. ([31fe8aaa](https://github.com/blaugold/flutter_exploded/commit/31fe8aaa107a38448438aa83729f2a82840b0c9e))
+ - **DOCS**: update docs. ([f57adf87](https://github.com/blaugold/flutter_exploded/commit/f57adf87d609a9d09321966762863d9c4301b1fd))
+
 ## 0.1.1
 
  - **STYLE**: fix formatting. ([fa9c6423](https://github.com/blaugold/flutter_exploded/commit/fa9c6423ff410640986df3e31d0e2b2d11ac65f6))
