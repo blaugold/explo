@@ -5,7 +5,7 @@
 This package allows you to explore the render tree of a Flutter app in 3D,
 through an exploded representation.
 
-<img src="https://github.com/blaugold/explo/raw/master/doc/images/flutter_explode_demo.gif">
+<img src="https://github.com/blaugold/explo/raw/main/doc/images/flutter_explode_demo.gif">
 
 # Getting Started
 
