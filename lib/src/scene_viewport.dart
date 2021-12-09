@@ -146,10 +146,15 @@ class SceneViewport extends StatelessWidget {
   Widget build(BuildContext context) {
     return TransformStack.root(
       child: CameraTransform(
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          alignment: Alignment.topLeft,
-          children: children,
+        // We need the ClipRect, because Stack only clips if its children if
+        // they overflow. The direct children of this Stack below never
+        // overflow, because the actual widgets displayed in the scene are
+        // positioned by a Transform and layed out by an OverflowBox.
+        child: ClipRect(
+          child: Stack(
+            alignment: Alignment.topLeft,
+            children: children,
+          ),
         ),
       ),
     );
@@ -517,7 +522,7 @@ class ModelInteraction extends StatelessWidget {
   final Widget child;
 
   static const _scrollScaleFactor = 0.001;
-
+  static const _pinchScaleFactor = 1.0;
   static const _rotationFactor = 0.1;
 
   @override
@@ -525,28 +530,26 @@ class ModelInteraction extends StatelessWidget {
     return Listener(
       onPointerSignal: (event) {
         if (event is PointerScrollEvent) {
-          _updateScaleWithDelta(event.scrollDelta.dy);
+          _updateScaleWithDelta(event.scrollDelta.dy * _scrollScaleFactor);
         }
       },
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onScaleUpdate: (details) {
-          _updateScaleWithDelta(details.delta.dy);
+          final scaleDelta = (details.scale - 1);
+          _updateScaleWithDelta(scaleDelta * _pinchScaleFactor);
+
+          controller.rotationY += details.focalPointDelta.dx * _rotationFactor;
+          controller.rotationX += details.focalPointDelta.dy * -_rotationFactor;
         },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onPanUpdate: (event) {
-            controller.rotationY += event.delta.dx * _rotationFactor;
-            controller.rotationX += event.delta.dy * -_rotationFactor;
-          },
-          child: child,
-        ),
+        child: child,
       ),
     );
   }
 
   void _updateScaleWithDelta(double delta) {
     final scale = _reverseScaleCurve(controller.scale);
-    final newScale = _applyScaleCurve(scale + delta * _scrollScaleFactor);
+    final newScale = _applyScaleCurve(scale + delta);
     controller.scale = newScale.clamp(scaleMin, scaleMax);
   }
 
