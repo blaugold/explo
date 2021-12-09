@@ -9,16 +9,16 @@ import 'package:vm_service/vm_service.dart';
 import 'render_object_data.dart';
 
 /// Name of the service extension method to get the current render tree.
-const getRenderTreeMethod = 'ext.flutter_exploded.getRenderTree';
+const getRenderTreeMethod = 'ext.explo.getRenderTree';
 
 /// Name of the service extension method to update the count of current
 /// render tree change listeners.
 const updateRenderTreeChangeListenersMethod =
-    'ext.flutter_exploded.updateRenderTreeChangeListeners';
+    'ext.explo.updateRenderTreeChangeListeners';
 
 /// Name of the service extension event that is posted when the render
 /// tree changes.
-const renderTreeChangedEvent = 'ext.flutter_exploded.renderTreeChanged';
+const renderTreeChangedEvent = 'ext.explo.renderTreeChanged';
 
 /// The count of current render tree change listeners. Only if the count is
 /// above zero, the render tree will be captured after each frame.

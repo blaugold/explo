@@ -1,5 +1,5 @@
-name: flutter_exploded
-repository: https://github.com/blaugold/flutter_exploded
+name: explo
+repository: https://github.com/blaugold/explo
 packages:
   - '*'
 

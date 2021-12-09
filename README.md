@@ -1,11 +1,11 @@
-[![pub.dev](https://badgen.net/pub/v/flutter_exploded)](https://pub.dev/packages/flutter_exploded)
+[![pub.dev](https://badgen.net/pub/v/explo)](https://pub.dev/packages/explo)
 
 > ⚠️ This package is **experimental**.
 
-This package allows you to display an exploded view of the render tree of a
-Flutter app.
+This package allows you to explore the render tree of a Flutter app in 3D,
+through an exploded representation.
 
-<img src="https://github.com/blaugold/flutter_exploded/raw/master/doc/images/flutter_explode_demo.gif">
+<img src="https://github.com/blaugold/explo/raw/master/doc/images/flutter_explode_demo.gif">
 
 # Getting Started
 
@@ -14,18 +14,19 @@ display the exploded visualization, the other is the app you want to visualize.
 
 ## Instrument your app
 
-The app you want to visualize must be instrumented. First add `flutter_exploded`
-as a dependency:
+The app you want to visualize must be instrumented. First add `explo` as a
+dependency:
 
 ```yaml
 dependencies:
-  flutter_exploded: ...
+  explo: ...
 ```
 
-Then capture the render tree of the app's widget tree that you want to visualize:
+Then capture the render tree of the app's widget tree that you want to
+visualize:
 
 ```dart
-import 'package:flutter_exploded/flutter_exploded.dart';
+import 'package:explo/explo.dart';
 
 CaptureRenderTree(
     child: MyInterestingAppComponent(),
@@ -34,18 +35,18 @@ CaptureRenderTree(
 
 ## Viewer app
 
-Again, add `flutter_exploded` as a dependency:
+Again, add `explo` as a dependency:
 
 ```yaml
 dependencies:
-  flutter_exploded: ...
+  explo: ...
 ```
 
-Then display the `FlutterExplodedPage` somewhere:
+Then display the `ExploPage` somewhere:
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:flutter_exploded/flutter_exploded.dart';
+import 'package:explo/explo.dart';
 
 void main() {
   runApp(MyApp());
@@ -56,7 +57,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: FlutterExplodedPage(),
+      home: ExploPage(),
     );
   }
 }

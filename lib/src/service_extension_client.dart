@@ -6,14 +6,14 @@ import 'package:vm_service/vm_service.dart';
 import 'render_object_data.dart';
 import 'service_extension.dart';
 
-/// Client for the service extensions added by `flutter_exploded`.
+/// Client for the service extensions added by `explo`.
 ///
 /// The client needs to be initialized by calling [init] before it can be used.
 ///
 /// When you are done with it you should call [dispose] to free up resources.
-class FlutterExplodedServiceClient {
-  /// Creates a client for the service extensions added by `flutter_exploded`.
-  FlutterExplodedServiceClient({
+class ExploServiceClient {
+  /// Creates a client for the service extensions added by `explo`.
+  ExploServiceClient({
     required this.vmService,
     required this.isolateId,
     required this.onExtensionRegistered,

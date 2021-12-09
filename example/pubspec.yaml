@@ -1,5 +1,4 @@
-name: example
-description: A new Flutter project.
+name: explo_example
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.4
-  flutter_exploded:
+  explo:
     path: ../
 
 dev_dependencies:

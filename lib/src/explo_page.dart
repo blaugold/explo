@@ -12,19 +12,19 @@ import 'vm_service_utils.dart';
 
 /// A widget that presents the visualization of the render tree, as well
 /// as a page to connect to the target app.
-class FlutterExplodedPage extends StatefulWidget {
-  const FlutterExplodedPage({Key? key}) : super(key: key);
+class ExploPage extends StatefulWidget {
+  const ExploPage({Key? key}) : super(key: key);
 
   @override
-  _FlutterExplodedPageState createState() => _FlutterExplodedPageState();
+  _ExploPageState createState() => _ExploPageState();
 }
 
-class _FlutterExplodedPageState extends State<FlutterExplodedPage> {
+class _ExploPageState extends State<ExploPage> {
   @override
   Widget build(BuildContext context) => _ConnectToVmPage();
 }
 
-class _ExplodedAppManager extends ChangeNotifier {
+class _ExploAppManager extends ChangeNotifier {
   bool _isConnecting = false;
 
   bool get isConnection => _isConnecting;
@@ -33,7 +33,7 @@ class _ExplodedAppManager extends ChangeNotifier {
 
   vms.VmService? _vmService;
 
-  FlutterExplodedServiceClient? _client;
+  ExploServiceClient? _client;
 
   RenderObjectData? _tree;
 
@@ -60,7 +60,7 @@ class _ExplodedAppManager extends ChangeNotifier {
       final vm = await _vmService!.getVM();
       final isolateId = vm.isolates!.first.id!;
 
-      _client = FlutterExplodedServiceClient(
+      _client = ExploServiceClient(
         vmService: _vmService!,
         isolateId: isolateId,
         onExtensionRegistered: () async {
@@ -151,7 +151,7 @@ class _ConnectToVmPage extends StatefulWidget {
 }
 
 class _ConnectToVmPageState extends State<_ConnectToVmPage> {
-  final _appManager = _ExplodedAppManager();
+  final _appManager = _ExploAppManager();
   String? _uri;
 
   @override
@@ -217,7 +217,7 @@ class _ExplodedTreeViewerPage extends StatefulWidget {
     required this.appManager,
   });
 
-  final _ExplodedAppManager appManager;
+  final _ExploAppManager appManager;
 
   @override
   _ExplodedTreeViewerPageState createState() => _ExplodedTreeViewerPageState();
