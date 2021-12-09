@@ -334,6 +334,15 @@ class TransformController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The rotation of the transform as a [vm.Vector3].
+  vm.Vector3 get rotation => vm.Vector3(_rotationX, _rotationY, _rotationZ);
+
+  set rotation(vm.Vector3 value) {
+    rotationX = value.x;
+    rotationY = value.y;
+    rotationZ = value.z;
+  }
+
   /// The rotation of the transform in the x-axis.
   double get rotationX => _rotationX;
   double _rotationX;

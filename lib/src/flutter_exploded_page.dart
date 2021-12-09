@@ -237,10 +237,7 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
 
   var _types = kDefaultIncludedTypes;
 
-  final _modelController = TransformController(
-    rotationX: -15,
-    rotationY: 15,
-  )..scale = .4;
+  final _modelController = TransformController();
 
   @override
   Widget build(BuildContext context) {
@@ -266,42 +263,45 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
           ),
           body: tree == null
               ? const Center(child: CircularProgressIndicator())
-              : Row(
-                  children: [
-                    Expanded(
-                      child: ModelInteraction(
-                        scaleMin: .01,
-                        scaleMax: 2,
-                        controller: _modelController,
-                        child: SceneViewport(children: [
-                          ControllerTransform(
-                            controller: _modelController,
-                            child: CenterTransform(
-                              size: vm.Vector3(
-                                tree.paintBounds.width,
-                                tree.paintBounds.height,
-                                1,
-                              ),
-                              child: SceneRenderTree(
-                                root: tree,
-                                types: _types,
-                              ),
-                            ),
-                          )
-                        ]),
-                      ),
-                    ),
-                    _RenderObjectTypeFilter(
-                      types: widget.appManager.allTypes,
-                      selected: _types,
-                      onChanged: (selected) => setState(() {
-                        _types = selected;
-                      }),
-                    )
-                  ],
-                ),
+              : _buildContent(tree),
         );
       },
+    );
+  }
+
+  Row _buildContent(RenderObjectData tree) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ViewportControls(
+            controller: _modelController,
+            child: SceneViewport(children: [
+              ControllerTransform(
+                controller: _modelController,
+                child: CenterTransform(
+                  size: vm.Vector3(
+                    tree.paintBounds.width,
+                    tree.paintBounds.height,
+                    1,
+                  ),
+                  child: SceneRenderTree(
+                    root: tree,
+                    types: _types,
+                  ),
+                ),
+              )
+            ]),
+          ),
+        ),
+        const VerticalDivider(width: 0),
+        _RenderObjectTypeFilter(
+          types: widget.appManager.allTypes,
+          selected: _types,
+          onChanged: (selected) => setState(() {
+            _types = selected;
+          }),
+        )
+      ],
     );
   }
 
@@ -368,5 +368,107 @@ class _RenderObjectTypeFilter extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ViewportControls extends StatefulWidget {
+  const _ViewportControls({
+    Key? key,
+    required this.controller,
+    required this.child,
+  }) : super(key: key);
+
+  final TransformController controller;
+
+  final Widget child;
+
+  @override
+  State<_ViewportControls> createState() => _ViewportControlsState();
+}
+
+class _ViewportControlsState extends State<_ViewportControls>
+    with SingleTickerProviderStateMixin {
+  static const _initialScale = .4;
+  static final _frontViewRotation = vm.Vector3(0, 0, 0);
+  static final _rotatedViewRotation = vm.Vector3(-20, 20, 0);
+
+  late final _rotationAnimationController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 250),
+  );
+  final _rotationTween = Tween(begin: vm.Vector3.zero());
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Init the transform controller to the initial values.
+    widget.controller.scale = _initialScale;
+    widget.controller.rotation = _rotatedViewRotation;
+
+    // Setup the rotation animation.
+    final _rotationAnimation = _rotationAnimationController
+        .drive(CurveTween(curve: Curves.easeOutCubic))
+        .drive(_rotationTween);
+
+    _rotationAnimation.addListener(() {
+      final rotation = _rotationAnimation.value;
+      widget.controller.rotation = rotation;
+    });
+  }
+
+  @override
+  void dispose() {
+    _rotationAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        ModelInteraction(
+          scaleMin: .01,
+          scaleMax: 2,
+          controller: widget.controller,
+          child: widget.child,
+        ),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: PopupMenuButton(
+            child: const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'View',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            onSelected: _animateToRotation,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _frontViewRotation,
+                child: const Text('Front'),
+              ),
+              PopupMenuItem(
+                value: _rotatedViewRotation,
+                child: const Text('Rotated'),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  void _animateToRotation(vm.Vector3 newRotation) {
+    final currentRotation = vm.Vector3(
+      widget.controller.rotationX,
+      widget.controller.rotationY,
+      widget.controller.rotationZ,
+    );
+    _rotationTween.begin = currentRotation;
+    _rotationTween.end = newRotation;
+    _rotationAnimationController.forward(from: 0);
   }
 }

@@ -120,23 +120,6 @@ class _SceneRenderTreeState extends State<SceneRenderTree> {
 
     return SceneGroup(
       children: [
-        // Marker to show the root of the render tree.
-        SceneWidget(
-            child: SizedBox(
-          width: _renderObjects.first.renderObject.paintBounds.width,
-          height: _renderObjects.first.renderObject.paintBounds.height,
-          child: Center(
-            child: Container(
-              width: 20,
-              height: 20,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.red,
-              ),
-            ),
-          ),
-        )),
-
         /// Render objects.
         for (final renderObject in _renderObjects)
           _SceneRenderObject(
