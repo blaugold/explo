@@ -1,229 +1,108 @@
-import 'dart:async';
-
 import 'package:explo_capture/internal.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' as vm;
-import 'package:vm_service/vm_service.dart' as vms;
 
+import 'render_tree_loader.dart';
 import 'scene_render_tree.dart';
 import 'scene_viewport.dart';
-import 'service_extension_client.dart';
-import 'vm_service_utils.dart';
+import 'theming_utils.dart';
 
-/// A widget that presents the visualization of the render tree, as well
-/// as a page to connect to the target app.
+/// A widget that connects to the target app via the [vmServiceUri] and
+/// visualizes the render tree captured by the app.
 class ExploPage extends StatefulWidget {
-  const ExploPage({Key? key}) : super(key: key);
+  const ExploPage({
+    Key? key,
+    required this.vmServiceUri,
+    this.onFailedToConnect,
+  }) : super(key: key);
+
+  /// The URI of the VM Service of the app to connect to.
+  final Uri vmServiceUri;
+
+  /// Callback that is invoked when connecting to the app fails.
+  final VoidCallback? onFailedToConnect;
 
   @override
-  _ExploPageState createState() => _ExploPageState();
+  State<ExploPage> createState() => _ExploPageState();
 }
 
 class _ExploPageState extends State<ExploPage> {
+  final _renderTreeLoader = RenderTreeLoader();
+
   @override
-  Widget build(BuildContext context) => _ConnectToVmPage();
-}
-
-class _ExploAppManager extends ChangeNotifier {
-  bool _isConnecting = false;
-
-  bool get isConnection => _isConnecting;
-
-  bool get isConnected => _vmService != null;
-
-  vms.VmService? _vmService;
-
-  ExploServiceClient? _client;
-
-  RenderObjectData? _tree;
-
-  RenderObjectData? get tree => _tree;
-
-  List<String> _allTypes = [];
-
-  List<String> get allTypes => List.unmodifiable(_allTypes);
-
-  StreamSubscription? _watchSub;
-
-  bool get isWatching => _watchSub != null;
-
-  Future<void> connectToClient(String uri) async {
-    if (_isConnecting) return;
-
-    setState(() {
-      _isConnecting = true;
+  void initState() {
+    super.initState();
+    _renderTreeLoader.connectToApp(widget.vmServiceUri);
+    _renderTreeLoader.addListener(() {
+      if (_renderTreeLoader.status == RenderTreeLoaderStatus.connectingFailed) {
+        widget.onFailedToConnect?.call();
+      }
     });
-
-    try {
-      _vmService = await vmServiceConnectUri(uri);
-
-      final vm = await _vmService!.getVM();
-      final isolateId = vm.isolates!.first.id!;
-
-      _client = ExploServiceClient(
-        vmService: _vmService!,
-        isolateId: isolateId,
-        onExtensionRegistered: () async {
-          await loadTree();
-          startWatchingTree();
-          setState(() {
-            _isConnecting = false;
-          });
-        },
-      );
-      await _client!.init();
-    } catch (e) {
-      // ignore: avoid_print
-      print(e);
-      setState(() {
-        _isConnecting = false;
-      });
-    }
   }
 
-  void disconnect() async {
-    if (isConnected) {
-      await stopWatchingTree();
-      await _client!.dispose();
-      await _vmService!.dispose();
-
-      setState(() {
-        _client = null;
-        _vmService = null;
-        _tree = null;
-        _allTypes.clear();
-      });
-    }
-  }
-
-  Future<void> loadTree() async {
-    final tree = await _client!.getRenderTree();
-    _updateTree(tree);
-  }
-
-  void startWatchingTree() {
-    if (!isWatching) {
-      setState(() {
-        _watchSub = _client!.renderTreeChanged().listen(_updateTree);
-      });
-    }
-  }
-
-  Future<void> stopWatchingTree() async {
-    if (isWatching) {
-      await _watchSub?.cancel();
-      setState(() {
-        _watchSub = null;
-      });
-    }
-  }
-
-  void setState(void Function() cb) {
-    cb();
-    notifyListeners();
-  }
-
-  void _updateTree(RenderObjectData? tree) {
-    _tree = tree;
-
-    if (tree == null) {
-      // It's possible that no CaptureRenderTree is currently in the app.
-      notifyListeners();
-      return;
-    }
-
-    final nodes = <RenderObjectData>[];
-    void collectNode(RenderObjectData node) {
-      nodes.add(node);
-      node.children.forEach(collectNode);
-    }
-
-    collectNode(_tree!);
-    _allTypes = nodes.map((e) => e.type).toSet().toList()..sort();
-
-    notifyListeners();
-  }
-}
-
-class _ConnectToVmPage extends StatefulWidget {
   @override
-  _ConnectToVmPageState createState() => _ConnectToVmPageState();
-}
-
-class _ConnectToVmPageState extends State<_ConnectToVmPage> {
-  final _appManager = _ExploAppManager();
-  String? _uri;
+  void dispose() {
+    _renderTreeLoader.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _appManager,
+      animation: _renderTreeLoader,
       builder: (context, _) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Connect to App'),
-          ),
-          body: Stack(
-            children: [
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  constraints: const BoxConstraints(maxWidth: 500),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'VM Service URI',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (uri) => setState(() => _uri = uri),
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      ElevatedButton(
-                        child: const Text('Connect'),
-                        onPressed:
-                            (_uri?.isNotEmpty ?? false) ? _connect : null,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (_appManager.isConnected)
-                const Center(child: CircularProgressIndicator())
-            ],
-          ),
-        );
+        switch (_renderTreeLoader.status) {
+          case RenderTreeLoaderStatus.connecting:
+            return _message(context, 'Connecting...', spinner: true);
+          case RenderTreeLoaderStatus.connectingFailed:
+            return _message(context, 'Failed to connect to App');
+          case RenderTreeLoaderStatus.connected:
+            return _RenderTreeViewerPage(
+              renderTreeLoader: _renderTreeLoader,
+            );
+          case RenderTreeLoaderStatus.disconnected:
+            return _message(context, 'App disconnected');
+          default:
+            throw UnsupportedError('unreachable');
+        }
       },
     );
   }
 
-  void _connect() async {
-    await _appManager.connectToClient(_uri!);
-
-    await Navigator.push<void>(context, MaterialPageRoute(builder: (_) {
-      return _ExplodedTreeViewerPage(appManager: _appManager);
-    }));
-
-    _appManager.disconnect();
+  Widget _message(BuildContext context, String s, {bool spinner = false}) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: Padding(
+          padding: ThemingConstants.spacingPadding,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (spinner) const CircularProgressIndicator(),
+              ThemingConstants.spacer,
+              Text(s),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-class _ExplodedTreeViewerPage extends StatefulWidget {
-  const _ExplodedTreeViewerPage({
-    required this.appManager,
-  });
+class _RenderTreeViewerPage extends StatefulWidget {
+  const _RenderTreeViewerPage({
+    Key? key,
+    required this.renderTreeLoader,
+  }) : super(key: key);
 
-  final _ExploAppManager appManager;
+  final RenderTreeLoader renderTreeLoader;
 
   @override
-  _ExplodedTreeViewerPageState createState() => _ExplodedTreeViewerPageState();
+  _RenderTreeViewerPageState createState() => _RenderTreeViewerPageState();
 }
 
-class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
+class _RenderTreeViewerPageState extends State<_RenderTreeViewerPage> {
   static const kDefaultIncludedTypes = [
     'RenderCustomPaint',
     'RenderDecoratedBox',
@@ -240,22 +119,30 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
   final _modelController = TransformController();
 
   @override
+  void dispose() {
+    _modelController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: widget.appManager,
+      animation: widget.renderTreeLoader,
       builder: (context, _) {
-        final tree = widget.appManager.tree;
+        final tree = widget.renderTreeLoader.tree;
 
         return Scaffold(
           appBar: AppBar(
             actions: [
               IconButton(
                 icon: const Icon(Icons.refresh),
-                onPressed: () => widget.appManager.loadTree(),
+                onPressed: () => widget.renderTreeLoader.loadTree(),
               ),
               IconButton(
                 icon: Icon(
-                  widget.appManager.isWatching ? Icons.stop : Icons.play_arrow,
+                  widget.renderTreeLoader.isWatching
+                      ? Icons.stop
+                      : Icons.play_arrow,
                 ),
                 onPressed: _toggleAutoRefresh,
               )
@@ -295,7 +182,7 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
         ),
         const VerticalDivider(width: 0),
         _RenderObjectTypeFilter(
-          types: widget.appManager.allTypes,
+          types: widget.renderTreeLoader.allTypes,
           selected: _types,
           onChanged: (selected) => setState(() {
             _types = selected;
@@ -306,10 +193,10 @@ class _ExplodedTreeViewerPageState extends State<_ExplodedTreeViewerPage> {
   }
 
   void _toggleAutoRefresh() {
-    if (!widget.appManager.isWatching) {
-      widget.appManager.startWatchingTree();
+    if (!widget.renderTreeLoader.isWatching) {
+      widget.renderTreeLoader.startWatchingTree();
     } else {
-      widget.appManager.stopWatchingTree();
+      widget.renderTreeLoader.stopWatchingTree();
     }
   }
 }
@@ -438,7 +325,7 @@ class _ViewportControlsState extends State<_ViewportControls>
           right: 0,
           child: PopupMenuButton(
             child: const Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: ThemingConstants.spacingPadding,
               child: Text(
                 'View',
                 style: TextStyle(fontWeight: FontWeight.bold),

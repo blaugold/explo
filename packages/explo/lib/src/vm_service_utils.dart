@@ -3,21 +3,22 @@ import 'dart:async';
 import 'package:vm_service/vm_service.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-Future<VmService> vmServiceConnectUri(String wsUri, {Log? log}) async {
-  final channel = WebSocketChannel.connect(Uri.parse(wsUri));
+VmService vmServiceConnectUri(Uri wsUri, {Log? log}) {
+  final channel = WebSocketChannel.connect(wsUri);
   final controller = StreamController<dynamic>();
-  final streamClosedCompleter = Completer<void>();
+  late VmService vmService;
 
   channel.stream.listen(
     controller.add,
-    onDone: streamClosedCompleter.complete,
+    onDone: controller.close,
+    onError: (Object error, StackTrace stackTrace) => vmService.dispose(),
+    cancelOnError: true,
   );
 
-  return VmService(
+  return vmService = VmService(
     controller.stream,
-    (String message) => channel.sink.add(message),
+    channel.sink.add,
     log: log,
-    disposeHandler: () => channel.sink.close(),
-    streamClosed: streamClosedCompleter.future,
+    disposeHandler: channel.sink.close,
   );
 }

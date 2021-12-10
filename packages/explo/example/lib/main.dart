@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Explo',
       theme: ThemeData.from(colorScheme: const ColorScheme.light()),
       darkTheme: ThemeData.from(colorScheme: const ColorScheme.dark()),
-      home: const ExploPage(),
+      home: const ManualConnectExploPage(),
     );
   }
 }
