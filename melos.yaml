@@ -9,7 +9,7 @@ command:
 
 scripts:
   formatting:check:
-    run: melos exec -c 1 -- flutter format -o none --set-exit-if-changed .
+    run: dart format -o none --set-exit-if-changed .
   formatting:write:
     run: melos exec -c 1 -- flutter format .
   analyze:

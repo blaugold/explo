@@ -1,0 +1,10 @@
+{
+  "name": "explo",
+  "scripts": {
+    "prettier:check": "prettier --check .",
+    "prettier:write": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "2.5.1"
+  }
+}
