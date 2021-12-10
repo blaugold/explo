@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:collection/collection.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:vm_service/vm_service.dart';
 
 import 'render_object_data.dart';
 
@@ -80,7 +79,7 @@ void _registerServiceExtension() {
       delta = int.parse(args['delta']!);
     } catch (e) {
       return ServiceExtensionResponse.error(
-        RPCError.kInvalidParams,
+        ServiceExtensionResponse.invalidParams,
         '{"message":"Invalid arguments: $args"}',
       );
     }

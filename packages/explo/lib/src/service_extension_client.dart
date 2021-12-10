@@ -1,10 +1,8 @@
 import 'dart:async';
 
+import 'package:explo_capture/internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:vm_service/vm_service.dart';
-
-import 'render_object_data.dart';
-import 'service_extension.dart';
 
 /// Client for the service extensions added by `explo`.
 ///

@@ -1,8 +1,16 @@
 name: explo
 repository: https://github.com/blaugold/explo
 packages:
-  - '*'
+  - 'packages/**'
 
 command:
   version:
     linkToCommits: true
+
+scripts:
+  formatting:check:
+    run: melos exec -c 1 -- flutter format -o none --set-exit-if-changed .
+  formatting:write:
+    run: melos exec -c 1 -- flutter format .
+  analyze:
+    run: melos exec -c 1 -- flutter analyze

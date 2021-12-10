@@ -1,9 +1,9 @@
-name: explo
+name: explo_capture
 description:
-  Explore the render tree of a Flutter app in 3D, through an exploded
-  representation.
-version: 0.1.2
+  Capture render tree data of a Flutter app, for visualization with explo.
+version: 0.1.0
 repository: https://github.com/blaugold/explo
+homepage: https://github.com/blaugold/explo/main/packages/explo_capture
 issue_tracker: https://github.com/blaugold/explo/issues
 
 environment:
@@ -14,12 +14,6 @@ dependencies:
   collection: ^1.15.0
   flutter:
     sdk: flutter
-  stream_channel: ^2.1.0
-  vector_math: ^2.1.0
-  vm_service: ^7.5.0
-  web_socket_channel: ^2.1.0
 
 dev_dependencies:
   flutter_lints: ^1.0.4
-  flutter_test:
-    sdk: flutter
