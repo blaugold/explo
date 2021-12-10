@@ -2,6 +2,7 @@
 /// apps, for integration with IDEs.
 library viewer_service_extensions;
 
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:collection/collection.dart';
@@ -53,8 +54,8 @@ void _notifyTargetAppsListeners() {
   }
 }
 
-const addTargetAppCall = 'ext.explo.addTargetApp';
-const removeTargetAppCall = 'ext.explo.removeTargetApp';
+const addTargetAppMethod = 'ext.explo.addTargetApp';
+const removeTargetAppMethod = 'ext.explo.removeTargetApp';
 
 var _serviceExtensionsAreRegistered = false;
 
@@ -71,11 +72,12 @@ void ensureViewerServiceExtensionsAreRegistered() {
 }
 
 void _registerViewerServiceExtensions() {
-  registerExtension(addTargetAppCall, (method, args) async {
+  registerExtension(addTargetAppMethod, (method, args) async {
     final TargetApp app;
 
     try {
-      app = TargetApp.fromJson(args);
+      app =
+          TargetApp.fromJson(jsonDecode(args['app']!) as Map<String, Object?>);
     } catch (e) {
       return ServiceExtensionResponse.error(
         ServiceExtensionResponse.invalidParams,
@@ -89,7 +91,9 @@ void _registerViewerServiceExtensions() {
     return ServiceExtensionResponse.result('{}');
   });
 
-  registerExtension(addTargetAppCall, (method, args) async {
+  // removeTargetAppMethod must be registered last, because it signals that
+  // all viewer service extensions have been registered.
+  registerExtension(removeTargetAppMethod, (method, args) async {
     final id = args["id"];
     if (id == null) {
       return ServiceExtensionResponse.error(
@@ -98,7 +102,7 @@ void _registerViewerServiceExtensions() {
       );
     }
 
-    targetApps.removeWhere((app) => app.id == id);
+    _targetApps.removeWhere((app) => app.id == id);
     _notifyTargetAppsListeners();
 
     return ServiceExtensionResponse.result('{}');

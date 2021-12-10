@@ -77,7 +77,13 @@ class RenderTreeLoader extends ChangeNotifier {
         },
       );
       await _client!.init();
-    } catch (e) {
+    } catch (error, stackTrace) {
+      FlutterError.reportError(FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'explo',
+        context: ErrorDescription('Failed to connect to App.'),
+      ));
       _setState(() {
         _status = RenderTreeLoaderStatus.connectingFailed;
       });
