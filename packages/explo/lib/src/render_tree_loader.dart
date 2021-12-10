@@ -4,7 +4,7 @@ import 'package:explo_capture/internal.dart';
 import 'package:flutter/material.dart';
 import 'package:vm_service/vm_service.dart' as vms;
 
-import 'service_extension_client.dart';
+import 'capture_service_client.dart';
 import 'vm_service_utils.dart';
 
 /// The status of a [RenderTreeLoader].
@@ -20,7 +20,7 @@ enum RenderTreeLoaderStatus {
 /// A loader which connects to an app and loads the render tree.
 class RenderTreeLoader extends ChangeNotifier {
   vms.VmService? _vmService;
-  ExploServiceClient? _client;
+  CaptureServiceClient? _client;
 
   /// The current status of this loader.
   RenderTreeLoaderStatus get status => _status;
@@ -68,7 +68,7 @@ class RenderTreeLoader extends ChangeNotifier {
         _status = RenderTreeLoaderStatus.connected;
       });
 
-      _client = ExploServiceClient(
+      _client = CaptureServiceClient(
         vmService: _vmService!,
         isolateId: isolateId,
         onExtensionRegistered: () async {

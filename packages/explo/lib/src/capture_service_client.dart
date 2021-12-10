@@ -4,14 +4,14 @@ import 'package:explo_capture/internal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:vm_service/vm_service.dart';
 
-/// Client for the service extensions added by `explo`.
+/// Client for the service extensions added by `explo_capture`.
 ///
 /// The client needs to be initialized by calling [init] before it can be used.
 ///
 /// When you are done with it you should call [dispose] to free up resources.
-class ExploServiceClient {
+class CaptureServiceClient {
   /// Creates a client for the service extensions added by `explo`.
-  ExploServiceClient({
+  CaptureServiceClient({
     required this.vmService,
     required this.isolateId,
     required this.onExtensionRegistered,

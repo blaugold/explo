@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'service_extension.dart';
+import 'capture_service_extensions.dart';
 
 /// Captures the render tree of the widgets below [child], for visualization
 /// with `explo`.
