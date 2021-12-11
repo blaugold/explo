@@ -11,7 +11,7 @@ suite('Explo view', () => {
     // Retry to start debugging until the chrom target devices has been discovered
     // and the device picker does not show up anymore.
     await retryAfterTimeout(
-      { timeout: 1000, delay: 2000, totalTimeout: 10000 },
+      { timeout: 2000, delay: 0, totalTimeout: 20000 },
       () => {
         console.log('Attempting to start debugging')
         return vscode.debug.startDebugging(
