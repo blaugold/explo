@@ -15,14 +15,7 @@ scripts:
   analyze:
     run: melos exec -c 1 -- flutter analyze
   explo_ide_view:build:
-    run: |
-      set -e
-      cd packages/explo_ide_view
-      rm -rf build/web
-      flutter build web --pwa-strategy none
+    run: ./tools/explo_ide_view.sh build
   explo_ide_view:copy:vs_code:
-    run: |
-      set -e
-      rm -rf explo-code/explo_ide_view/dist
-      cp -a packages/explo_ide_view/build/web/* explo-code/dist/explo_ide_view
+    run: ./tools/explo_ide_view.sh copyToExploCode
   explo_ide_view:vs_code: 'melos run explo_ide_view:build && melos run explo_ide_view:copy:vs_code'
