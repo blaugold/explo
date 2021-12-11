@@ -6,7 +6,11 @@ import { getPrivateExtensionApi } from '../utils/extension'
 import { isCI, retryAfterTimeout, waitForResult } from '../utils/testing'
 
 suite('Explo view', () => {
-  const e2eTest = test('open with command', async () => {
+  test('open with command', async function () {
+    if (isCI) {
+      this.skip()
+    }
+
     // Start debugging.
     // Retry to start debugging until the chrom target devices has been discovered
     // and the device picker does not show up anymore.
@@ -46,13 +50,5 @@ suite('Explo view', () => {
     await waitForResult(() => {
       return openViewPanels.size === 0 ? true : undefined
     })
-  })
-
-  if (isCI) {
-    e2eTest.skip()
-  }
-
-  test('_', () => {
-    // Make test pass in CI until we have more tests.
   })
 })

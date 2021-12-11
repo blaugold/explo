@@ -1,6 +1,6 @@
-import * as path from 'path'
-import * as Mocha from 'mocha'
 import * as glob from 'glob'
+import * as Mocha from 'mocha'
+import * as path from 'path'
 
 export function run(): Promise<void> {
   // Create the mocha test
@@ -8,6 +8,7 @@ export function run(): Promise<void> {
     ui: 'tdd',
     color: true,
     timeout: 60000,
+    forbidPending: false,
   })
 
   const testsRoot = path.resolve(__dirname, '..')
