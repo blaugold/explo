@@ -18,7 +18,7 @@ async function main() {
       resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath)
 
     for (const dep of extensionDependencies) {
-      execSync(`${vscodeCliPath} --force --install-extension ${dep}`)
+      execSync(`'${vscodeCliPath}' --force --install-extension '${dep}'`)
     }
 
     const extensionDevelopmentPath = path.resolve(__dirname, '../../')
