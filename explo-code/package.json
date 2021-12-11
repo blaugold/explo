@@ -2,8 +2,20 @@
   "name": "explo-code",
   "publisher": "blaugold",
   "displayName": "Explo",
-  "description": "",
-  "version": "0.0.1",
+  "description": "Explore the render tree of a Flutter app in 3D, through an exploded representation.",
+  "repository": {
+    "url": "https://github.com/blaugold/explo",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/blaugold/explo/issues"
+  },
+  "author": {
+    "name": "Gabriel Terwesten",
+    "email": "gabriel@terwesten.net"
+  },
+  "license": "FOR LICENSE SEE LICENSE",
+  "version": "0.0.0",
   "engines": {
     "vscode": "^1.63.0"
   },
