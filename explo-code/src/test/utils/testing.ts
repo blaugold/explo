@@ -1,3 +1,5 @@
+export const isCI = process.env.CI !== undefined
+
 export async function sleep(timeout: number) {
   return new Promise((resolve) => setTimeout(resolve, timeout))
 }
@@ -50,13 +52,13 @@ export async function retryAfterTimeout<T = unknown>(
       }, timeout)
 
       ;(async () => action())().then(
-        (result) => {
+        (value) => {
           if (!timedOut) {
             clearTimeout(timer)
-            result = result
+            result = value
             resolve()
           } else {
-            cleanup?.(result)
+            cleanup?.(value)
           }
         },
         (error) => {

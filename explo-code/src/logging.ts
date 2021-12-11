@@ -86,6 +86,7 @@ export function consoleLogging(logger: Logger) {
     console.log(`${formatLogLevel(message.level)} ${message.message}`)
   })
 }
+
 function formatLogLevel(level: LogLevel) {
   return `[${level}]`.padEnd(7)
 }
