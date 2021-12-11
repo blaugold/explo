@@ -85,7 +85,7 @@ jobs:
         run: melos run explo_ide_view:vs_code
 
       - name: Start Xvfb
-        if: runner.os == Linux
+        if: runner.os == 'Linux'
         run: |
           Xvfb :99 -screen 0 1280x1024x24 &
           echo "DISPLAY=:99" >> "$GITHUB_ENV"
