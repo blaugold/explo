@@ -1,7 +1,7 @@
-import assert = require('assert')
+import * as assert from 'assert'
 import * as vscode from 'vscode'
 import { exploViewCommandsSymbol } from '../../api'
-import { ExploViewCommands } from '../../explo_view'
+import { ExploViewCommands } from '../../explo_view_commands'
 import { getPrivateExtensionApi } from '../utils/extension'
 import { sleep, waitForResult } from '../utils/testing'
 
@@ -9,7 +9,7 @@ suite('Explo view', () => {
   test('open with command', async () => {
     // Wait for dart extension to discover devices, so it wont show the device
     // picker when starting debugging.
-    await sleep(1000)
+    await sleep(5000)
 
     // Start debugging.
     await vscode.debug.startDebugging(

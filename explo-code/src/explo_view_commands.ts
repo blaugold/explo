@@ -2,6 +2,7 @@ import {
   commands,
   Disposable,
   ExtensionContext,
+  ProgressLocation,
   Uri,
   ViewColumn,
   WebviewPanel,
@@ -13,6 +14,7 @@ import {
 } from './explo_debug_session'
 import { Logger } from './logging'
 import { selectExploDebugSession } from './user_prompts'
+import { waitForEvent } from './utils/events'
 import { disposeAll } from './utils/resources'
 
 export class ExploViewCommands implements Disposable {
@@ -32,16 +34,37 @@ export class ExploViewCommands implements Disposable {
           return
         }
 
-        const panel = this.openExploView(exploSession)
+        if (!exploSession.isReady) {
+          const sessionIsReady = waitForEvent(
+            debugSessionCoordinator.onDidMakeSessionReady,
+            (session) => session === exploSession
+          )
 
-        const disposable = debugSessionCoordinator.didTerminateSession(
-          (session) => {
-            if (session === exploSession) {
-              disposable.dispose()
-              this.closeExploView(exploSession)
+          let canceled = false
+          await window.withProgress(
+            {
+              title: 'Waiting for debug session to become ready',
+              location: ProgressLocation.Notification,
+              cancellable: true,
+            },
+            async (_, cancellation) => {
+              cancellation.onCancellationRequested(() => {
+                canceled = true
+              })
+              await sessionIsReady
             }
+          )
+          if (canceled) {
+            return
           }
-        )
+        }
+
+        this.openExploView(exploSession)
+
+        waitForEvent(
+          debugSessionCoordinator.didTerminateSession,
+          (session) => session === exploSession
+        ).then(() => this.closeExploView(exploSession))
       })
     )
   }
@@ -72,8 +95,6 @@ export class ExploViewCommands implements Disposable {
     })
 
     this.openViewPanels.set(session, panel)
-
-    return panel
   }
 
   private closeExploView(session: ExploDebugSession) {

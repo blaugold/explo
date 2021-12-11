@@ -1,8 +1,9 @@
 import { ExtensionContext } from 'vscode'
 import { exploViewCommandsSymbol } from './api'
 import { ExploDebugSessionsCoordinator } from './explo_debug_session'
-import { ExploViewCommands } from './explo_view'
+import { ExploViewCommands } from './explo_view_commands'
 import { consoleLogging, Logger, LogLevel, outputLogging } from './logging'
+import { isDevMode } from './utils/env'
 
 export function activate(context: ExtensionContext) {
   const logger = new Logger()

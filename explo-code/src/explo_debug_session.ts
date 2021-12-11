@@ -42,6 +42,9 @@ export class ExploDebugSessionsCoordinator implements Disposable {
     return this.activeSession.filter((session) => !session.isViewerApp)
   }
 
+  private onDidMakeSessionReadyEmitter = new EventEmitter<ExploDebugSession>()
+  onDidMakeSessionReady = this.onDidMakeSessionReadyEmitter.event
+
   private didTerminateSessionEmitter = new EventEmitter<ExploDebugSession>()
   didTerminateSession = this.didTerminateSessionEmitter.event
 
@@ -82,6 +85,7 @@ export class ExploDebugSessionsCoordinator implements Disposable {
       exploSession.vmServiceUri = event.body.vmServiceUri
 
       this.handleExploSessionReady(exploSession)
+      this.onDidMakeSessionReadyEmitter.fire(exploSession)
     } else if (
       event.event === 'dart.serviceExtensionAdded' &&
       event.body.extensionRPC === 'ext.explo.removeTargetApp'
@@ -167,8 +171,15 @@ export class ExploDebugSession {
   }
 
   readonly label: string
+
   vmServiceUri?: string
+
   isolateId?: string
+
+  get isReady(): boolean {
+    return !!this.vmServiceUri && !!this.isolateId
+  }
+
   isViewerApp?: boolean
 
   get targetApp(): TargetApp {

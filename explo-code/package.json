@@ -11,8 +11,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onDebug",
-    "onCommand:explo.openView"
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -25,6 +24,9 @@
       }
     ]
   },
+  "extensionDependencies": [
+    "Dart-Code.dart-code"
+  ],
   "scripts": {
     "vscode:prepublish": "melos run explo_ide_view:vs_code &&  npm run package",
     "compile": "webpack",
