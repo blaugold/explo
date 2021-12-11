@@ -13,7 +13,7 @@ import {
 } from './explo_debug_session'
 import { Logger } from './logging'
 import { selectExploDebugSession } from './user_prompts'
-import { disposeAll } from './utils/basic'
+import { disposeAll } from './utils/resources'
 
 export class ExploViewCommands implements Disposable {
   constructor(

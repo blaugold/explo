@@ -14,6 +14,11 @@ async function main() {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [workspacePath],
+      extensionTestsEnv: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        EXPLO_CODE_DEV_MODE: 'true',
+        ...process.env,
+      },
     })
   } catch (err) {
     console.error('Failed to run tests')

@@ -8,7 +8,7 @@ import {
 } from 'vscode'
 import { isFlutterDebugSession } from './dart_debug_session'
 import { Logger } from './logging'
-import { disposeAll } from './utils/basic'
+import { disposeAll } from './utils/resources'
 
 /**
  * Coordinates debug sessions between apps that are capturing render tree data

@@ -82,7 +82,10 @@ jobs:
         run: dart pub global activate melos $MELOS_VERSION
 
       - name: Build explo_ide_view
-        run: melos run explo_ide_view:vs_code
+        shell: bash
+        run: |
+          ./tools/explo_ide_view.sh build
+          ./tools/explo_ide_view.sh copyToExploCode
 
       - name: Start Xvfb
         if: runner.os == 'Linux'
