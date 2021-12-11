@@ -39,6 +39,7 @@ async function main() {
         ...process.env,
       },
     })
+    process.exit(0)
   } catch (err) {
     console.error('Failed to run tests')
     process.exit(1)
