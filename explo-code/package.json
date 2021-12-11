@@ -1,5 +1,6 @@
 {
   "name": "explo-code",
+  "publisher": "blaugold",
   "displayName": "Explo",
   "description": "",
   "version": "0.0.1",
@@ -10,14 +11,22 @@
     "Other"
   ],
   "activationEvents": [
-    "onDebug"
+    "onDebug",
+    "onCommand:explo.openView"
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": []
+    "commands": [
+      {
+        "command": "explo.openView",
+        "title": "Open view",
+        "category": "Explo",
+        "enablement": "inDebugMode && debugType == 'dart'"
+      }
+    ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
+    "vscode:prepublish": "melos run explo_ide_view:vs_code &&  npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
