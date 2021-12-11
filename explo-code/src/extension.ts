@@ -14,6 +14,8 @@ export function activate(context: ExtensionContext) {
     context.subscriptions.push(consoleLogging(logger))
   }
 
+  logger.info('Extension activated')
+
   const debugSessionCoordinator = new ExploDebugSessionsCoordinator(logger)
   context.subscriptions.push(debugSessionCoordinator)
 

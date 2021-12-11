@@ -3,26 +3,22 @@ import * as vscode from 'vscode'
 import { exploViewCommandsSymbol } from '../../api'
 import { ExploViewCommands } from '../../explo_view_commands'
 import { getPrivateExtensionApi } from '../utils/extension'
-import { sleep, waitForResult } from '../utils/testing'
+import { retryAfterTimeout, waitForResult } from '../utils/testing'
 
 suite('Explo view', () => {
   test('open with command', async () => {
     // Start debugging.
     // Retry to start debugging until the chrom target devices has been discovered
     // and the device picker does not show up anymore.
-    // await retryAfterTimeout(
-    //   { timeout: 1000, delay: 2000, totalTimeout: 10000 },
-    //   () =>
-    //     vscode.debug.startDebugging(
-    //       vscode.workspace.workspaceFolders![0],
-    //       'hello_flutter'
-    //     )
-    // )
-
-    await sleep(10000)
-    await vscode.debug.startDebugging(
-      vscode.workspace.workspaceFolders![0],
-      'hello_flutter'
+    await retryAfterTimeout(
+      { timeout: 1000, delay: 2000, totalTimeout: 10000 },
+      () => {
+        console.log('Attempting to start debugging')
+        return vscode.debug.startDebugging(
+          vscode.workspace.workspaceFolders![0],
+          'hello_flutter'
+        )
+      }
     )
 
     // Open the explo view.
