@@ -1,7 +1,9 @@
+.vscode-test
+.dart_tool
 node_modules
 build
 dist
+out
 coverage
-.dart_tool
 *.xcassets
 CHANGELOG.md

@@ -72,9 +72,9 @@ export function outputLogging(
       return
     }
 
-    const message = `[${logMessage.date.toLocaleTimeString()}] [${
+    const message = `${logMessage.date.toLocaleTimeString()} ${formatLogLevel(
       logMessage.level
-    }] ${logMessage.message}`
+    )} ${logMessage.message}`
     outputChannel.appendLine(message)
   })
 
@@ -83,19 +83,10 @@ export function outputLogging(
 
 export function consoleLogging(logger: Logger) {
   return logger.onLogMessage((message) => {
-    switch (message.level) {
-      case LogLevel.error:
-        console.error(message.message)
-        break
-      case LogLevel.warn:
-        console.warn(message.message)
-        break
-      case LogLevel.info:
-        console.info(message.message)
-        break
-      case LogLevel.debug:
-        console.debug(message.message)
-        break
-    }
+    console.log(`${formatLogLevel(message.level)} ${message.message}`)
   })
+}
+
+function formatLogLevel(level: LogLevel) {
+  return `[${level}]`.padEnd(7)
 }

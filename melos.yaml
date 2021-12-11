@@ -14,3 +14,8 @@ scripts:
     run: melos exec -c 1 -- flutter format .
   analyze:
     run: melos exec -c 1 -- flutter analyze
+  explo_ide_view:build:
+    run: ./tools/explo_ide_view.sh build
+  explo_ide_view:copy:vs_code:
+    run: ./tools/explo_ide_view.sh copyToExploCode
+  explo_ide_view:vs_code: 'melos run explo_ide_view:build && melos run explo_ide_view:copy:vs_code'

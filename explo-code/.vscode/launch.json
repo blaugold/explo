@@ -11,10 +11,13 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/.."
+        "${workspaceFolder}/src/test/workspaces/hello_flutter"
       ],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "preLaunchTask": "${defaultBuildTask}"
+      "preLaunchTask": "${defaultBuildTask}",
+      "env": {
+        "EXPLO_CODE_DEV_MODE": "true"
+      }
     },
     {
       "name": "Extension Tests",
@@ -22,13 +25,17 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
+        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+        "${workspaceFolder}/src/test/workspaces/hello_flutter"
       ],
       "outFiles": [
         "${workspaceFolder}/out/**/*.js",
         "${workspaceFolder}/dist/**/*.js"
       ],
-      "preLaunchTask": "tasks: watch-tests"
+      "preLaunchTask": "tasks: watch-tests",
+      "env": {
+        "EXPLO_CODE_DEV_MODE": "true"
+      }
     }
   ]
 }

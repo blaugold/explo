@@ -3,11 +3,12 @@ import {
   DebugSession,
   DebugSessionCustomEvent,
   Disposable,
+  EventEmitter,
   workspace,
 } from 'vscode'
 import { isFlutterDebugSession } from './dart_debug_session'
 import { Logger } from './logging'
-import { disposeAll } from './utils/basic'
+import { disposeAll } from './utils/resources'
 
 /**
  * Coordinates debug sessions between apps that are capturing render tree data
@@ -25,19 +26,27 @@ export class ExploDebugSessionsCoordinator implements Disposable {
     this.subscriptions.push(
       debug.onDidReceiveDebugSessionCustomEvent(this.handleCustomEvent, this)
     )
+
+    this.subscriptions.push(this.didTerminateSessionEmitter)
   }
 
   private readonly subscriptions: Disposable[] = []
 
-  private activeSession: ExploDebugSession[] = []
+  readonly activeSession: ExploDebugSession[] = []
 
-  private get viewerSessions(): ExploDebugSession[] {
+  get viewerSessions(): ExploDebugSession[] {
     return this.activeSession.filter((session) => session.isViewerApp)
   }
 
-  private get nonViewerSessions(): ExploDebugSession[] {
+  get nonViewerSessions(): ExploDebugSession[] {
     return this.activeSession.filter((session) => !session.isViewerApp)
   }
+
+  private onDidMakeSessionReadyEmitter = new EventEmitter<ExploDebugSession>()
+  onDidMakeSessionReady = this.onDidMakeSessionReadyEmitter.event
+
+  private didTerminateSessionEmitter = new EventEmitter<ExploDebugSession>()
+  didTerminateSession = this.didTerminateSessionEmitter.event
 
   private handleSessionStart(session: DebugSession) {
     if (!isFlutterDebugSession(session)) {
@@ -61,6 +70,7 @@ export class ExploDebugSessionsCoordinator implements Disposable {
     this.activeSession.splice(this.activeSession.indexOf(exploSession), 1)
 
     this.handleExploSessionEnd(exploSession)
+    this.didTerminateSessionEmitter.fire(exploSession)
   }
 
   private handleCustomEvent(event: DebugSessionCustomEvent) {
@@ -75,6 +85,7 @@ export class ExploDebugSessionsCoordinator implements Disposable {
       exploSession.vmServiceUri = event.body.vmServiceUri
 
       this.handleExploSessionReady(exploSession)
+      this.onDidMakeSessionReadyEmitter.fire(exploSession)
     } else if (
       event.event === 'dart.serviceExtensionAdded' &&
       event.body.extensionRPC === 'ext.explo.removeTargetApp'
@@ -145,13 +156,13 @@ export class ExploDebugSessionsCoordinator implements Disposable {
   }
 }
 
-interface TargetApp {
+export interface TargetApp {
   id: string
   label: string
   vmServiceUri: string
 }
 
-class ExploDebugSession {
+export class ExploDebugSession {
   constructor(public readonly session: DebugSession) {
     const program = this.session.configuration.program as string
     this.label = workspace
@@ -159,9 +170,16 @@ class ExploDebugSession {
       .replace(/\/lib\/.*\.dart/g, '')
   }
 
-  label: string
+  readonly label: string
+
   vmServiceUri?: string
+
   isolateId?: string
+
+  get isReady(): boolean {
+    return this.vmServiceUri !== undefined
+  }
+
   isViewerApp?: boolean
 
   get targetApp(): TargetApp {
