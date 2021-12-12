@@ -25,10 +25,10 @@ suite('Explo view', () => {
       }
     )
 
-    // Open the explo view.
+    // Open the Explo view.
     await vscode.commands.executeCommand('explo.openView')
 
-    // Verify the explo view was opened.
+    // Verify the Explo view was opened.
     const exploViewCommands = await getPrivateExtensionApi<ExploViewCommands>(
       exploViewCommandsSymbol
     )
@@ -46,7 +46,7 @@ suite('Explo view', () => {
     // Stop debugging.
     await vscode.debug.stopDebugging()
 
-    // Wait for explo view to be closed after the debug session is stopped.
+    // Wait for Explo view to be closed after the debug session is stopped.
     await waitForResult(() => {
       return openViewPanels.size === 0 ? true : undefined
     })

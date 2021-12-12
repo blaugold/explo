@@ -1,11 +1,18 @@
 [![pub.dev](https://badgen.net/pub/v/explo)](https://pub.dev/packages/explo)
+[![CI](https://github.com/blaugold/explo/actions/workflows/ci.yaml/badge.svg)](https://github.com/blaugold/explo/actions/workflows/ci.yaml)
+
+<p align="center">
+    <img src="https://github.com/blaugold/explo/raw/main/docs/images/explo_logo.png" width="240px">
+</p>
+
+---
 
 > ⚠️ This package is **experimental**.
 
-This package allows you to explore the render tree of a Flutter app in 3D,
+Explo allows you to explore the render tree of a Flutter app in 3D,
 through an exploded representation.
 
-<img src="https://github.com/blaugold/explo/raw/main/packages/explo/doc/images/flutter_explode_demo.gif">
+<img src="https://github.com/blaugold/explo/raw/main/docs/images/flutter_explode_demo.gif">
 
 # Getting Started
 

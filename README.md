@@ -1,5 +1,13 @@
-Monorepo for explo, a tool which allows you to explore the render tree of a
-Flutter app in 3D, through an exploded representation
+[![CI](https://github.com/blaugold/explo/actions/workflows/ci.yaml/badge.svg)](https://github.com/blaugold/explo/actions/workflows/ci.yaml)
+
+<p align="center">
+    <img src="https://github.com/blaugold/explo/raw/main/docs/images/explo_logo.png" width="240px">
+</p>
+
+---
+
+Monorepo for **Explo**, a tool which allows you to explore the render tree of a
+Flutter app in 3D, through an exploded representation.
 
 | Component      | Description                                                            | Location                                             | Published at                                                                                                                                          |
 | -------------- | ---------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |

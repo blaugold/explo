@@ -3,6 +3,18 @@
   "publisher": "blaugold",
   "displayName": "Explo",
   "description": "Explore the render tree of a Flutter app in 3D, through an exploded representation.",
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "Flutter",
+    "devtools",
+    "debugging",
+    "exploded view"
+  ],
+  "preview": true,
+  "license": "FOR LICENSE SEE LICENSE",
+  "icon": "docs/images/explo_logo.png",
   "repository": {
     "url": "https://github.com/blaugold/explo",
     "type": "git"
@@ -14,14 +26,10 @@
     "name": "Gabriel Terwesten",
     "email": "gabriel@terwesten.net"
   },
-  "license": "FOR LICENSE SEE LICENSE",
   "version": "0.0.0",
   "engines": {
     "vscode": "^1.63.0"
   },
-  "categories": [
-    "Other"
-  ],
   "activationEvents": [
     "onStartupFinished"
   ],

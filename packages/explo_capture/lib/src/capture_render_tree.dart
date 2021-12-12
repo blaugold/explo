@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'capture_service_extensions.dart';
 
 /// Captures the render tree of the widgets below [child], for visualization
-/// with `explo`.
+/// with Explo.
 ///
 /// If multiple [CaptureRenderTree]s are in the widget tree, only the last one
 /// inserted will be captured.
