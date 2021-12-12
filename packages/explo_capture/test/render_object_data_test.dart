@@ -8,9 +8,7 @@ void main() {
   testWidgets(
     'capture render tree data',
     (tester) async {
-      final binding = TestWidgetsFlutterBinding.ensureInitialized()
-          as TestWidgetsFlutterBinding;
-      await binding.setSurfaceSize(const Size.square(200));
+      await tester.binding.setSurfaceSize(const Size.square(200));
 
       await tester.pumpWidget(
         Center(
