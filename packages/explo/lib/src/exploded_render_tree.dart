@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'scene_viewport.dart';
 import 'theming_utils.dart';
 
-/// An immutable object, describing how to visualize a [RenderObject].
-class RenderObjectStyle {
-  /// Creates an immutable object, describing how to visualize a [RenderObject].
-  RenderObjectStyle({
+/// A style, which defines the look of an [ExplodedRenderTree].
+class ExplodedRenderTreeStyle {
+  /// Creates a style, which defines the look of an [ExplodedRenderTree].
+  ExplodedRenderTreeStyle({
     required this.borderColor,
     required this.surfaceColor,
     this.labelStyle,
@@ -15,7 +15,7 @@ class RenderObjectStyle {
   });
 
   /// Fallback style that is used when no other style is available.
-  factory RenderObjectStyle.fallback() => RenderObjectStyle(
+  factory ExplodedRenderTreeStyle.fallback() => ExplodedRenderTreeStyle(
         borderColor: MaterialStateProperty.all(Colors.grey[400]!),
         surfaceColor: MaterialStateProperty.resolveWith((states) {
           final baseColor = Colors.grey[700]!.withOpacity(.1);
@@ -54,21 +54,37 @@ class RenderObjectStyle {
   /// property controls how the depth of a render object in the rendert tree,
   /// is visualized in a third dimension.
   final double zAxisSpacing;
+
+  /// Creates a copy of this style, optionally overriding some of its
+  /// properties.
+  ExplodedRenderTreeStyle copyWith({
+    MaterialStateProperty<Color?>? borderColor,
+    MaterialStateProperty<Color?>? surfaceColor,
+    TextStyle? labelStyle,
+    double? zAxisSpacing,
+  }) {
+    return ExplodedRenderTreeStyle(
+      borderColor: borderColor ?? this.borderColor,
+      surfaceColor: surfaceColor ?? this.surfaceColor,
+      labelStyle: labelStyle ?? this.labelStyle,
+      zAxisSpacing: zAxisSpacing ?? this.zAxisSpacing,
+    );
+  }
 }
 
-/// A widget that displays a render tree, represented by the [root]
-/// [RenderObjectData] in a 3D scene.
+/// A widget for use in a [SceneViewport], that displays an exploded
+/// visualization of a Flutter render tree.
 ///
 /// Render objects are placed along the z axis, according to their depth in the
 /// render tree.
-class SceneRenderTree extends StatefulWidget {
-  /// Creates a widget that displays a render tree, represented by the [root]
-  /// [RenderObjectData] in a 3D scene.
-  const SceneRenderTree({
+class ExplodedRenderTree extends StatefulWidget {
+  /// Creates a widget for use in a [SceneViewport], that displays an exploded
+  /// visualization of a Flutter render tree.
+  const ExplodedRenderTree({
     Key? key,
     required this.root,
     this.types,
-    this.renderObjectStyle,
+    this.style,
   }) : super(key: key);
 
   /// The root of the render tree to display.
@@ -81,14 +97,14 @@ class SceneRenderTree extends StatefulWidget {
 
   /// The style to use for rendering the render tree.
   ///
-  /// If none is provided, [RenderObjectStyle.fallback] will be used.
-  final RenderObjectStyle? renderObjectStyle;
+  /// If none is provided, [ExplodedRenderTreeStyle.fallback] will be used.
+  final ExplodedRenderTreeStyle? style;
 
   @override
-  State<SceneRenderTree> createState() => _SceneRenderTreeState();
+  State<ExplodedRenderTree> createState() => _ExplodedRenderTreeState();
 }
 
-class _SceneRenderTreeState extends State<SceneRenderTree> {
+class _ExplodedRenderTreeState extends State<ExplodedRenderTree> {
   late List<_VisualLevelRenderObject> _renderObjects;
 
   @override
@@ -98,7 +114,7 @@ class _SceneRenderTreeState extends State<SceneRenderTree> {
   }
 
   @override
-  void didUpdateWidget(covariant SceneRenderTree oldWidget) {
+  void didUpdateWidget(covariant ExplodedRenderTree oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (widget.root != oldWidget.root || widget.types != oldWidget.types) {
@@ -116,7 +132,7 @@ class _SceneRenderTreeState extends State<SceneRenderTree> {
   @override
   Widget build(BuildContext context) {
     final renderObjectStyle =
-        widget.renderObjectStyle ?? RenderObjectStyle.fallback();
+        widget.style ?? ExplodedRenderTreeStyle.fallback();
 
     return SceneGroup(
       children: [
@@ -139,7 +155,7 @@ class _SceneRenderObject extends StatefulWidget {
   }) : super(key: key);
 
   final _VisualLevelRenderObject renderObject;
-  final RenderObjectStyle renderObjectStyle;
+  final ExplodedRenderTreeStyle renderObjectStyle;
 
   @override
   State<_SceneRenderObject> createState() => _SceneRenderObjectState();

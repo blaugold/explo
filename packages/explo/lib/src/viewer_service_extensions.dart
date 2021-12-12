@@ -2,6 +2,7 @@
 /// apps, for integration with IDEs.
 library viewer_service_extensions;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -9,8 +10,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 /// An app which is capturing render tree data.
+@immutable
 class TargetApp {
-  TargetApp({
+  const TargetApp({
     required this.id,
     required this.label,
     required this.vmServiceUri,
@@ -29,6 +31,24 @@ class TargetApp {
 
   /// The URI of the VM service of the app.
   final Uri vmServiceUri;
+
+  Map<String, Object?> toJson() => <String, Object?>{
+        'id': id,
+        'label': label,
+        'vmServiceUri': vmServiceUri.toString(),
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TargetApp &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          label == other.label &&
+          vmServiceUri == other.vmServiceUri;
+
+  @override
+  int get hashCode => id.hashCode ^ label.hashCode ^ vmServiceUri.hashCode;
 }
 
 /// A list of available target apps. This list is populated by external tools,
@@ -36,11 +56,13 @@ class TargetApp {
 List<TargetApp> get targetApps => UnmodifiableListView(_targetApps);
 final _targetApps = <TargetApp>[];
 
-final _targetAppsListeners = <VoidCallback>[];
+final _targetAppsListeners = <VoidCallback, VoidCallback>{};
 
 /// Adds a listener that is called when the list of [targetApps] changes.
 void addTargetAppsListener(VoidCallback listener) {
-  _targetAppsListeners.add(listener);
+  // The services extension can be called from any zone, so we need to bind
+  // the listener callbacks to the current zone.
+  _targetAppsListeners[listener] = Zone.current.bindCallback(listener);
 }
 
 /// Removes a listener that was added with [addTargetAppsListener].
@@ -49,9 +71,15 @@ void removeTargetAppsListener(VoidCallback listener) {
 }
 
 void _notifyTargetAppsListeners() {
-  for (final listener in _targetAppsListeners) {
+  for (final listener in _targetAppsListeners.values.toList()) {
     listener();
   }
+}
+
+@visibleForTesting
+void resetViewerServiceExtension() {
+  _targetApps.clear();
+  _targetAppsListeners.clear();
 }
 
 const addTargetAppMethod = 'ext.explo.addTargetApp';
