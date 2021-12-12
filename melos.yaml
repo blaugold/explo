@@ -14,6 +14,16 @@ scripts:
     run: melos exec -c 1 -- flutter format .
   analyze:
     run: melos exec -c 1 -- flutter analyze
+  test:flutter:unit:
+    run: melos exec -c 1 -- flutter test -r expanded
+    select-package:
+      flutter: true
+      dir-exists: test
+  test:flutter:integration:
+    run: melos exec -c 1 -- flutter test -r expanded integration_test
+    select-package:
+      flutter: true
+      dir-exists: integration_test
   explo_ide_view:build:
     run: ./tools/explo_ide_view.sh build
   explo_ide_view:copy:vs_code:
