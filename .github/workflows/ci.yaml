@@ -68,6 +68,14 @@ jobs:
       - name: Install melos
         run: dart pub global activate melos $MELOS_VERSION
 
+      - name: Activate Flutter desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Start Xvfb
+        run: |
+          Xvfb :99 -screen 0 1280x1024x24 &
+          echo "DISPLAY=:99" >> "$GITHUB_ENV"
+
       - name: Run tests
         run: melos run test:flutter:integration
 
