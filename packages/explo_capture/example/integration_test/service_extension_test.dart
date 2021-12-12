@@ -60,17 +60,17 @@ void main() {
         emitsInOrder(<Object>['RenderLimitedBox']),
       );
 
-      // This frame wont trigger an event, because 0 listener is registered.
+      // This frame wont trigger an event, because no listener is registered.
       await tester.pumpWidget(CaptureRenderTree(child: Container()));
 
       await updateRenderTreeChangeListeners(1);
 
-      // This frame will trigger an event, because 1 listener is registered.
+      // This frame will trigger an event, because a listener registered.
       await tester.pumpWidget(CaptureRenderTree(child: Container()));
 
       await updateRenderTreeChangeListeners(-1);
 
-      // This frame wont trigger an event, because 0 listener is registered.
+      // This frame wont trigger an event, because no listener is registered.
       await tester.pumpWidget(CaptureRenderTree(child: Container()));
     },
   );
