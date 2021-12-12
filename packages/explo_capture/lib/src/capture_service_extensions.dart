@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -35,8 +36,11 @@ List<Element> _capturedElementsStack = [];
 /// This is a noop in release builds.
 void startCapturingRenderTree(Element element) {
   assert(() {
-    _ensureServiceExtensionIsRegistered();
     _capturedElementsStack.add(element);
+    // This function is called from the build phase and
+    // _registerServiceExtension adds a persistent frame callback, which must
+    // be done outside the build phase.
+    scheduleMicrotask(_ensureServiceExtensionIsRegistered);
     return true;
   }());
 }

@@ -43,6 +43,34 @@ jobs:
       - name: Check formatting
         run: melos run formatting:check
 
+  flutter-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v1
+
+      - name: Install melos
+        run: dart pub global activate melos $MELOS_VERSION
+
+      - name: Run tests
+        run: melos run test:flutter:unit
+
+  flutter-integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v1
+
+      - name: Install melos
+        run: dart pub global activate melos $MELOS_VERSION
+
+      - name: Run tests
+        run: melos run test:flutter:integration
+
   explo-code-lint:
     runs-on: ubuntu-latest
     steps:

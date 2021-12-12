@@ -49,8 +49,7 @@ class RenderObjectData {
         .._transform = transform;
 
       if (parent != null) {
-        parent.children.add(data);
-        data.parent = parent;
+        parent.addChild(data);
       }
 
       renderObject.visitChildren((child) {
@@ -91,9 +90,7 @@ class RenderObjectData {
         (json['c'] as List<Object?>?)?.cast<Map<String, Object?>>() ?? [];
 
     for (var json in children) {
-      final child = RenderObjectData.fromJson(json);
-      data.children.add(child);
-      child.parent = data;
+      data.addChild(RenderObjectData.fromJson(json));
     }
 
     return data;
@@ -110,13 +107,23 @@ class RenderObjectData {
   final Rect paintBounds;
 
   /// The data of the [RenderObject]'s parent.
-  RenderObjectData? parent;
+  RenderObjectData? get parent => _parent;
+  RenderObjectData? _parent;
 
   /// The level of the [RenderObject] in the render tree.
   int get level => parent == null ? 0 : parent!.level + 1;
 
   /// The data of the [RenderObject]'s children.
-  final List<RenderObjectData> children = [];
+  List<RenderObjectData> get children => _children;
+  final List<RenderObjectData> _children = [];
+
+  /// Adds the given [RenderObjectData] as a [child] of this [RenderObjectData].
+  void addChild(RenderObjectData child) {
+    assert(child.parent == null);
+    assert(!children.contains(child));
+    child._parent = this;
+    children.add(child);
+  }
 
   /// The data of the [RenderObject]'s descendants.
   List<RenderObjectData> get descendants {
@@ -130,14 +137,6 @@ class RenderObjectData {
     }
 
     return result;
-  }
-
-  RenderObjectData flattenWithPaintBounds() {
-    if (children.length == 1 && children.first.paintBounds == paintBounds) {
-      return children.first.flattenWithPaintBounds();
-    }
-
-    return this;
   }
 
   /// The JSON representation of this instance.
