@@ -55,7 +55,7 @@ jobs:
         run: dart pub global activate melos $MELOS_VERSION
 
       - name: Run tests
-        run: melos run test:flutter:unit
+        run: melos run --no-select test:flutter:unit
 
   flutter-integration-tests:
     runs-on: ubuntu-latest
@@ -82,7 +82,7 @@ jobs:
           echo "DISPLAY=:99" >> "$GITHUB_ENV"
 
       - name: Run tests
-        run: melos run test:flutter:integration
+        run: melos run --no-select test:flutter:integration
 
   explo-code-lint:
     runs-on: ubuntu-latest

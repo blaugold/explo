@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' as vm;
 
 import 'render_tree_loader.dart';
-import 'scene_render_tree.dart';
+import 'exploded_render_tree.dart';
 import 'scene_viewport.dart';
 import 'theming_utils.dart';
 
@@ -171,7 +171,7 @@ class _RenderTreeViewerPageState extends State<_RenderTreeViewerPage> {
                     tree.paintBounds.height,
                     1,
                   ),
-                  child: SceneRenderTree(
+                  child: ExplodedRenderTree(
                     root: tree,
                     types: _types,
                   ),
