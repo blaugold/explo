@@ -11,7 +11,7 @@ scripts:
   formatting:check:
     run: dart format -o none --set-exit-if-changed .
   formatting:write:
-    run: melos exec -c 1 -- flutter format .
+    run: dart format .
   analyze:
     run: melos exec -c 1 -- flutter analyze
   test:flutter:unit:

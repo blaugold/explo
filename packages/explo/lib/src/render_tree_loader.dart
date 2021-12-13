@@ -36,6 +36,11 @@ class RenderTreeLoader extends ChangeNotifier {
   List<String> get allTypes => List.unmodifiable(_allTypes);
   List<String> _allTypes = [];
 
+  /// A map of all the render object types in the captured render tree,
+  /// to the number of instances of each type in the render tree.
+  Map<String, int> get typeCounts => _typeCounts;
+  final Map<String, int> _typeCounts = {};
+
   /// Whether the loader is currently watching the captured render tree.
   ///
   /// While watching, the loader will automatically receive the latest version
@@ -111,6 +116,7 @@ class RenderTreeLoader extends ChangeNotifier {
     _vmService = null;
     _tree = null;
     _allTypes.clear();
+    _typeCounts.clear();
   }
 
   /// Loads the render tree from the app.
@@ -145,6 +151,8 @@ class RenderTreeLoader extends ChangeNotifier {
 
   void _updateTree(RenderObjectData? tree) {
     _tree = tree;
+    _allTypes.clear();
+    _typeCounts.clear();
 
     if (tree == null) {
       // It's possible that no CaptureRenderTree is currently in the app.
@@ -152,14 +160,15 @@ class RenderTreeLoader extends ChangeNotifier {
       return;
     }
 
-    final nodes = <RenderObjectData>[];
-    void collectNode(RenderObjectData node) {
-      nodes.add(node);
-      node.children.forEach(collectNode);
-    }
-
-    collectNode(_tree!);
-    _allTypes = nodes.map((e) => e.type).toSet().toList()..sort();
+    _allTypes = [_tree!, ..._tree!.descendants]
+        .map((renderObject) {
+          final type = renderObject.type;
+          _typeCounts[type] = (_typeCounts[type] ?? 0) + 1;
+          return type;
+        })
+        .toSet()
+        .toList()
+      ..sort();
 
     notifyListeners();
   }

@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:explo_capture/internal.dart';
 import 'package:flutter/material.dart';
 
 import 'scene_viewport.dart';
-import 'theming_utils.dart';
 
 /// A style, which defines the look of an [ExplodedRenderTree].
 class ExplodedRenderTreeStyle {
@@ -10,7 +11,6 @@ class ExplodedRenderTreeStyle {
   ExplodedRenderTreeStyle({
     required this.borderColor,
     required this.surfaceColor,
-    this.labelStyle,
     required this.zAxisSpacing,
   });
 
@@ -26,7 +26,6 @@ class ExplodedRenderTreeStyle {
 
           return baseColor;
         }),
-        labelStyle: const TextStyle(fontSize: 12),
         zAxisSpacing: 20,
       );
 
@@ -44,9 +43,6 @@ class ExplodedRenderTreeStyle {
   /// displayed.
   final MaterialStateProperty<Color?> surfaceColor;
 
-  /// The [TextStyle] used to paint the label of a render object.
-  final TextStyle? labelStyle;
-
   /// The spacing to use between different levels of the render tree, on the
   /// z-axis.
   ///
@@ -60,13 +56,11 @@ class ExplodedRenderTreeStyle {
   ExplodedRenderTreeStyle copyWith({
     MaterialStateProperty<Color?>? borderColor,
     MaterialStateProperty<Color?>? surfaceColor,
-    TextStyle? labelStyle,
     double? zAxisSpacing,
   }) {
     return ExplodedRenderTreeStyle(
       borderColor: borderColor ?? this.borderColor,
       surfaceColor: surfaceColor ?? this.surfaceColor,
-      labelStyle: labelStyle ?? this.labelStyle,
       zAxisSpacing: zAxisSpacing ?? this.zAxisSpacing,
     );
   }
@@ -85,6 +79,7 @@ class ExplodedRenderTree extends StatefulWidget {
     required this.root,
     this.types,
     this.style,
+    this.onHoveredRenderObjectChanged,
   }) : super(key: key);
 
   /// The root of the render tree to display.
@@ -100,12 +95,17 @@ class ExplodedRenderTree extends StatefulWidget {
   /// If none is provided, [ExplodedRenderTreeStyle.fallback] will be used.
   final ExplodedRenderTreeStyle? style;
 
+  /// Callback that is invoked when the render object that is currently hovered
+  /// changes.
+  final ValueChanged<RenderObjectData?>? onHoveredRenderObjectChanged;
+
   @override
   State<ExplodedRenderTree> createState() => _ExplodedRenderTreeState();
 }
 
 class _ExplodedRenderTreeState extends State<ExplodedRenderTree> {
   late List<_VisualLevelRenderObject> _renderObjects;
+  RenderObjectData? _hoveredRenderObject;
 
   @override
   void initState() {
@@ -141,6 +141,19 @@ class _ExplodedRenderTreeState extends State<ExplodedRenderTree> {
           _SceneRenderObject(
             renderObject: renderObject,
             renderObjectStyle: renderObjectStyle,
+            onIsHoveredChanged: (isHovered) {
+              if (isHovered) {
+                _hoveredRenderObject = renderObject.renderObject;
+                widget.onHoveredRenderObjectChanged?.call(_hoveredRenderObject);
+              } else {
+                scheduleMicrotask(() {
+                  if (_hoveredRenderObject == renderObject.renderObject) {
+                    _hoveredRenderObject = null;
+                    widget.onHoveredRenderObjectChanged?.call(null);
+                  }
+                });
+              }
+            },
           )
       ],
     );
@@ -152,10 +165,12 @@ class _SceneRenderObject extends StatefulWidget {
     Key? key,
     required this.renderObject,
     required this.renderObjectStyle,
+    required this.onIsHoveredChanged,
   }) : super(key: key);
 
   final _VisualLevelRenderObject renderObject;
   final ExplodedRenderTreeStyle renderObjectStyle;
+  final ValueChanged<bool> onIsHoveredChanged;
 
   @override
   State<_SceneRenderObject> createState() => _SceneRenderObjectState();
@@ -166,10 +181,6 @@ class _SceneRenderObjectState extends State<_SceneRenderObject> {
 
   @override
   Widget build(BuildContext context) {
-    final showLabel = const HasAnyState({
-      MaterialState.hovered,
-      MaterialState.focused,
-    }).resolve(_states);
     final borderColor = widget.renderObjectStyle.borderColor.resolve(_states);
     final surfaceColor = widget.renderObjectStyle.surfaceColor.resolve(_states);
 
@@ -198,6 +209,7 @@ class _SceneRenderObjectState extends State<_SceneRenderObject> {
                   _states.remove(MaterialState.hovered);
                 }
               });
+              widget.onIsHoveredChanged(showHoverHighlight);
             },
             onShowFocusHighlight: (showFocusHighlight) {
               setState(() {
@@ -208,26 +220,14 @@ class _SceneRenderObjectState extends State<_SceneRenderObject> {
                 }
               });
             },
-            child: Stack(
-              children: [
-                SizedBox.fromSize(
-                  size: renderObject.paintBounds.size,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: border,
-                      color: surfaceColor,
-                    ),
-                  ),
+            child: SizedBox.fromSize(
+              size: renderObject.paintBounds.size,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: border,
+                  color: surfaceColor,
                 ),
-                if (showLabel)
-                  FractionalTranslation(
-                    translation: const Offset(0, -1),
-                    child: Text(
-                      renderObject.type,
-                      style: widget.renderObjectStyle.labelStyle,
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
         ),

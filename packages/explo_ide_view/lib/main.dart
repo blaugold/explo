@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.from(colorScheme: const ColorScheme.light()),
       darkTheme: ThemeData.from(colorScheme: const ColorScheme.dark()),
-      home: ExploPage(vmServiceUri: Uri.parse(vmServiceUri)),
+      home: ExploView(vmServiceUri: Uri.parse(vmServiceUri)),
     );
   }
 }
