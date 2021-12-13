@@ -1,4 +1,5 @@
 import {
+  ColorThemeKind,
   commands,
   Disposable,
   ExtensionContext,
@@ -92,6 +93,9 @@ export class ExploViewCommands implements Disposable {
     panel.webview.html = exploWebviewContent({
       baseUri: baseUri.toString(),
       vmServiceUri: session.vmServiceUri!,
+      themeMode: vscodeColorThemeKindToExploThemeMode(
+        window.activeColorTheme.kind
+      ),
     })
 
     this.openViewPanels.set(session, panel)
@@ -112,12 +116,29 @@ export class ExploViewCommands implements Disposable {
   }
 }
 
+enum ExploThemeMode {
+  light = 'light',
+  dark = 'dark',
+}
+
+function vscodeColorThemeKindToExploThemeMode(kind: ColorThemeKind) {
+  switch (kind) {
+    case ColorThemeKind.HighContrast:
+    case ColorThemeKind.Dark:
+      return ExploThemeMode.dark
+    case ColorThemeKind.Light:
+      return ExploThemeMode.light
+  }
+}
+
 function exploWebviewContent({
   baseUri,
   vmServiceUri,
+  themeMode,
 }: {
   baseUri: string
   vmServiceUri: string
+  themeMode: 'light' | 'dark'
 }): string {
   return `
 <!DOCTYPE html>
@@ -132,7 +153,8 @@ function exploWebviewContent({
         // Prepare browser environment for the view.
         window.explo = {
             config: {
-                vmServiceUri: '${vmServiceUri}'
+                vmServiceUri: '${vmServiceUri}',
+                themeMode: '${themeMode}'
             }
         }
 
