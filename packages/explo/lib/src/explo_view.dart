@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:explo_capture/internal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vector_math/vector_math_64.dart' as vm;
 
 import 'exploded_render_tree.dart';
@@ -9,12 +12,12 @@ import 'theming_.dart';
 
 /// A widget that connects to the target app via the [vmServiceUri] and
 /// visualizes the render tree captured by the app.
-class ExploView extends StatefulWidget {
+class ExploView extends StatelessWidget {
   const ExploView({
     Key? key,
     required this.vmServiceUri,
     this.onFailedToConnect,
-    this.onBack,
+    this.onBackPressed,
     this.themeMode,
   }) : super(key: key);
 
@@ -24,59 +27,137 @@ class ExploView extends StatefulWidget {
   /// Callback that is invoked when connecting to the app fails.
   final VoidCallback? onFailedToConnect;
 
-  final VoidCallback? onBack;
+  /// Callback that is invoked when the user presses the back button.
+  ///
+  /// The back button is only displayed if this callback is not `null`.
+  final VoidCallback? onBackPressed;
 
+  /// The mode to use for theming.
   final ThemeMode? themeMode;
-
-  @override
-  State<ExploView> createState() => _ExploViewState();
-}
-
-class _ExploViewState extends State<ExploView> {
-  final _renderTreeLoader = RenderTreeLoader();
-
-  @override
-  void initState() {
-    super.initState();
-    _renderTreeLoader.connectToApp(widget.vmServiceUri);
-    _renderTreeLoader.addListener(() {
-      if (_renderTreeLoader.status == RenderTreeLoaderStatus.connectingFailed) {
-        widget.onFailedToConnect?.call();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _renderTreeLoader.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return ExploTheme(
-      themeMode: widget.themeMode,
-      child: AnimatedBuilder(
-        animation: _renderTreeLoader,
-        builder: (context, _) {
-          switch (_renderTreeLoader.status) {
-            case RenderTreeLoaderStatus.connecting:
-              return _message(context, 'Connecting...', spinner: true);
-            case RenderTreeLoaderStatus.connectingFailed:
-              return _message(context, 'Failed to connect to App');
-            case RenderTreeLoaderStatus.connected:
-              return _RenderTreeViewerPage(
-                renderTreeLoader: _renderTreeLoader,
-                onBack: widget.onBack,
-              );
-            case RenderTreeLoaderStatus.disconnected:
-              return _message(context, 'App disconnected');
-            default:
-              throw UnsupportedError('unreachable');
-          }
-        },
+      themeMode: themeMode,
+      child: _Providers(
+        child: _ConnectToApp(
+          vmServiceUri: vmServiceUri,
+          onFailedToConnect: onFailedToConnect,
+          child: _RenderTreeViewer(
+            onBackPressed: onBackPressed,
+          ),
+        ),
       ),
     );
+  }
+}
+
+T lateProvider<T>(Ref ref) => throw UnimplementedError();
+
+final _renderTreeLoader =
+    ChangeNotifierProvider.autoDispose<RenderTreeLoader>(lateProvider);
+
+final _renderObjectTypesController =
+    ChangeNotifierProvider.autoDispose<_RenderObjectTypesController>(
+        lateProvider);
+
+final _modelController =
+    Provider.autoDispose<TransformController>(lateProvider);
+
+final _hoveredRenderObject = StateProvider<RenderObjectData?>((_) => null);
+
+class _Providers extends StatefulWidget {
+  const _Providers({Key? key, required this.child}) : super(key: key);
+
+  final Widget child;
+
+  @override
+  State<_Providers> createState() => _ProvidersState();
+}
+
+class _ProvidersState extends State<_Providers> {
+  final _renderTreeLoaderProvider =
+      ChangeNotifierProvider.autoDispose((_) => RenderTreeLoader());
+
+  final _modelControllerProvider = Provider.autoDispose((ref) {
+    final controller = createModelTransformController();
+    ref.onDispose(controller.dispose);
+    return controller;
+  });
+
+  final _renderObjectTypesControllerProvider =
+      ChangeNotifierProvider.autoDispose((_) => _RenderObjectTypesController());
+
+  final _hoveredRenderObjectProvider =
+      StateProvider<RenderObjectData?>((_) => null);
+
+  @override
+  Widget build(BuildContext context) {
+    return ProviderScope(
+      overrides: [
+        _renderTreeLoader.overrideWithProvider(_renderTreeLoaderProvider),
+        _modelController.overrideWithProvider(_modelControllerProvider),
+        _renderObjectTypesController
+            .overrideWithProvider(_renderObjectTypesControllerProvider),
+        _hoveredRenderObject.overrideWithProvider(_hoveredRenderObjectProvider),
+      ],
+      child: widget.child,
+    );
+  }
+}
+
+class _ConnectToApp extends ConsumerStatefulWidget {
+  const _ConnectToApp({
+    Key? key,
+    required this.vmServiceUri,
+    this.onFailedToConnect,
+    required this.child,
+  }) : super(key: key);
+
+  final Uri vmServiceUri;
+
+  final VoidCallback? onFailedToConnect;
+
+  final Widget child;
+
+  @override
+  __ExploViewState createState() => __ExploViewState();
+}
+
+class __ExploViewState extends ConsumerState<_ConnectToApp> {
+  @override
+  void initState() {
+    super.initState();
+    final renderTreeLoader = ref.read(_renderTreeLoader);
+
+    renderTreeLoader.addListener(() {
+      if (renderTreeLoader.status == RenderTreeLoaderStatus.connectingFailed) {
+        widget.onFailedToConnect?.call();
+      }
+    });
+
+    scheduleMicrotask(() {
+      renderTreeLoader.connectToApp(widget.vmServiceUri);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final renderTreeLoader = ref.watch(_renderTreeLoader);
+
+    switch (renderTreeLoader.status) {
+      case RenderTreeLoaderStatus.initial:
+      case RenderTreeLoaderStatus.connecting:
+        return _message(context, 'Connecting...', spinner: true);
+      case RenderTreeLoaderStatus.connectingFailed:
+        return _message(context, 'Failed to connect to App');
+      case RenderTreeLoaderStatus.connected:
+        return widget.child;
+      case RenderTreeLoaderStatus.disconnected:
+        return _message(context, 'App disconnected');
+      default:
+        throw UnsupportedError('unreachable');
+    }
   }
 
   Widget _message(BuildContext context, String s, {bool spinner = false}) {
@@ -99,23 +180,14 @@ class _ExploViewState extends State<ExploView> {
   }
 }
 
-class _RenderTreeViewerPage extends StatefulWidget {
-  const _RenderTreeViewerPage({
-    Key? key,
-    required this.renderTreeLoader,
-    this.onBack,
-  }) : super(key: key);
-
-  final RenderTreeLoader renderTreeLoader;
-
-  final VoidCallback? onBack;
-
-  @override
-  _RenderTreeViewerPageState createState() => _RenderTreeViewerPageState();
-}
-
-class _RenderTreeViewerPageState extends State<_RenderTreeViewerPage> {
-  static const kDefaultIncludedTypes = [
+class _RenderObjectTypesController extends ChangeNotifier {
+  // The types in this list have been chosen because they paint something onto
+  // the screen. Those are usually the most interesting types of render objects
+  // to visualize, because they correspond to something visual in the app.
+  //
+  // Just visualizing all types is not very useful. Because of Flutter's pattern
+  // of composing widgets, there are a lot of render objects.
+  static const defaultTypes = [
     'RenderCustomPaint',
     'RenderDecoratedBox',
     'RenderImage',
@@ -126,62 +198,91 @@ class _RenderTreeViewerPageState extends State<_RenderTreeViewerPage> {
     '_RenderColoredBox',
   ];
 
-  var _selectedAllTypes = false;
-  var _selectedTypes = kDefaultIncludedTypes;
+  bool get viewAllTypes => _viewAllTypes;
+  var _viewAllTypes = false;
 
-  RenderObjectData? _hoveredRenderObject;
-
-  final _modelController = TransformController();
-
-  @override
-  void dispose() {
-    _modelController.dispose();
-    super.dispose();
+  set viewAllTypes(bool value) {
+    if (value != _viewAllTypes) {
+      _viewAllTypes = value;
+      notifyListeners();
+    }
   }
 
+  List<String> get selectedTypes => _selectedTypes;
+  var _selectedTypes = defaultTypes.toList();
+
+  void setSelected(String type, bool selected) {
+    if (selected) {
+      _selectedTypes = _selectedTypes.toList()..add(type);
+    } else {
+      _selectedTypes = _selectedTypes.toList()..remove(type);
+    }
+    notifyListeners();
+  }
+
+  void resetSelection() {
+    _selectedTypes = defaultTypes.toList();
+    _viewAllTypes = false;
+    notifyListeners();
+  }
+}
+
+class _RenderTreeViewer extends ConsumerStatefulWidget {
+  const _RenderTreeViewer({
+    Key? key,
+    this.onBackPressed,
+  }) : super(key: key);
+
+  final VoidCallback? onBackPressed;
+
+  @override
+  _RenderTreeViewerPageState createState() => _RenderTreeViewerPageState();
+}
+
+class _RenderTreeViewerPageState extends ConsumerState<_RenderTreeViewer> {
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.renderTreeLoader,
-      builder: (context, _) {
-        final tree = widget.renderTreeLoader.tree;
+    final tree = ref.watch(_renderTreeLoader).tree;
 
-        return Scaffold(
-          body: tree == null
-              ? const Center(child: CircularProgressIndicator())
-              : _buildContent(tree),
-        );
-      },
+    return Scaffold(
+      body: tree == null
+          ? const Center(child: CircularProgressIndicator())
+          : _buildContent(),
     );
   }
 
-  Row _buildContent(RenderObjectData tree) {
+  Row _buildContent() {
+    final renderTreeLoader = ref.watch(_renderTreeLoader);
+    final tree = renderTreeLoader.tree!;
+
     return Row(
       children: [
         Expanded(
           child: _ViewportControls(
-            renderTreeLoader: widget.renderTreeLoader,
-            onBack: widget.onBack,
-            controller: _modelController,
-            hoveredRenderObject: _hoveredRenderObject,
+            onBackPressed: widget.onBackPressed,
             child: SceneViewport(children: [
               ControllerTransform(
-                controller: _modelController,
+                controller: ref.watch(_modelController),
                 child: CenterTransform(
                   size: vm.Vector3(
                     tree.paintBounds.width,
                     tree.paintBounds.height,
                     1,
                   ),
-                  child: ExplodedRenderTree(
-                    root: tree,
-                    types: _selectedAllTypes
-                        ? widget.renderTreeLoader.allTypes
-                        : _selectedTypes,
-                    onHoveredRenderObjectChanged: (value) {
-                      setState(() {
-                        _hoveredRenderObject = value;
-                      });
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final typesController =
+                          ref.watch(_renderObjectTypesController);
+                      final types = typesController.viewAllTypes
+                          ? renderTreeLoader.allTypes
+                          : typesController.selectedTypes;
+
+                      return ExplodedRenderTree(
+                        root: tree,
+                        types: types,
+                        onHoveredRenderObjectChanged: (value) =>
+                            ref.read(_hoveredRenderObject.state).state = value,
+                      );
                     },
                   ),
                 ),
@@ -190,53 +291,28 @@ class _RenderTreeViewerPageState extends State<_RenderTreeViewerPage> {
           ),
         ),
         const VerticalDivider(width: 0),
-        _RenderObjectTypeFilter(
-          types: widget.renderTreeLoader.allTypes,
-          selectedAll: _selectedAllTypes,
-          onSelectedAllChanged: (selectedAll) {
-            setState(() => _selectedAllTypes = selectedAll);
-          },
-          selected: _selectedTypes,
-          onSelectedChanged: (selected) =>
-              setState(() => _selectedTypes = selected),
-          onResetSelection: () => setState(() {
-            _selectedAllTypes = false;
-            _selectedTypes = kDefaultIncludedTypes;
-          }),
-        )
+        const _RenderObjectTypeFilter()
       ],
     );
   }
 }
 
-class _RenderObjectTypeFilter extends StatefulWidget {
-  const _RenderObjectTypeFilter({
-    Key? key,
-    required this.types,
-    required this.selectedAll,
-    required this.onSelectedAllChanged,
-    required this.selected,
-    required this.onSelectedChanged,
-    required this.onResetSelection,
-  }) : super(key: key);
-
-  final List<String> types;
-  final bool selectedAll;
-  final ValueChanged<bool> onSelectedAllChanged;
-  final List<String> selected;
-  final ValueChanged<List<String>> onSelectedChanged;
-  final VoidCallback onResetSelection;
+class _RenderObjectTypeFilter extends ConsumerStatefulWidget {
+  const _RenderObjectTypeFilter({Key? key}) : super(key: key);
 
   @override
-  State<_RenderObjectTypeFilter> createState() =>
-      _RenderObjectTypeFilterState();
+  _RenderObjectTypeFilterState createState() => _RenderObjectTypeFilterState();
 }
 
-class _RenderObjectTypeFilterState extends State<_RenderObjectTypeFilter> {
+class _RenderObjectTypeFilterState
+    extends ConsumerState<_RenderObjectTypeFilter> {
   List<String>? _filteredTypes;
 
   @override
   Widget build(BuildContext context) {
+    final controller = ref.watch(_renderObjectTypesController);
+    final allTypes = ref.watch(_renderTreeLoader).allTypes;
+
     return SizedBox(
       width: 250,
       child: Column(
@@ -254,21 +330,21 @@ class _RenderObjectTypeFilterState extends State<_RenderObjectTypeFilter> {
           ListTile(
             title: const Text('Reset selection'),
             dense: true,
-            onTap: () => widget.onResetSelection(),
+            onTap: controller.resetSelection,
           ),
           const Divider(height: 0),
           CheckboxListTile(
-            value: widget.selectedAll,
+            value: controller.viewAllTypes,
             title: const Text('All'),
             dense: true,
-            onChanged: (value) => widget.onSelectedAllChanged(value!),
+            onChanged: (value) => controller.viewAllTypes = value!,
           ),
           const Divider(height: 0),
           Expanded(
             child: ListView.builder(
-              itemCount: _filteredTypes?.length ?? widget.types.length,
+              itemCount: _filteredTypes?.length ?? allTypes.length,
               itemBuilder: (context, i) {
-                final type = (_filteredTypes ?? widget.types)[i];
+                final type = (_filteredTypes ?? allTypes)[i];
                 return CheckboxListTile(
                   key: ValueKey(type),
                   dense: true,
@@ -276,20 +352,12 @@ class _RenderObjectTypeFilterState extends State<_RenderObjectTypeFilter> {
                     type,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  value: widget.selectedAll
+                  value: controller.viewAllTypes
                       ? true
-                      : widget.selected.contains(type),
-                  onChanged: widget.selectedAll
+                      : controller.selectedTypes.contains(type),
+                  onChanged: controller.viewAllTypes
                       ? null
-                      : (included) {
-                          final newSelected = widget.selected.toList();
-                          if (included!) {
-                            newSelected.add(type);
-                          } else {
-                            newSelected.remove(type);
-                          }
-                          widget.onSelectedChanged(newSelected);
-                        },
+                      : (included) => controller.setSelected(type, included!),
                 );
               },
             ),
@@ -304,7 +372,8 @@ class _RenderObjectTypeFilterState extends State<_RenderObjectTypeFilter> {
       setState(() => _filteredTypes = null);
     } else {
       setState(() {
-        _filteredTypes = widget.types
+        final allTypes = ref.read(_renderTreeLoader).allTypes;
+        _filteredTypes = allTypes
             .where((type) => type.toLowerCase().contains(value.toLowerCase()))
             .toList();
       });
@@ -312,36 +381,31 @@ class _RenderObjectTypeFilterState extends State<_RenderObjectTypeFilter> {
   }
 }
 
-class _ViewportControls extends StatefulWidget {
+const _initialModelScale = .4;
+final _frontViewRotation = vm.Vector3(0, 0, 0);
+final _rotatedViewRotation = vm.Vector3(-20, 20, 0);
+
+TransformController createModelTransformController() => TransformController()
+  ..scale = _initialModelScale
+  ..rotation = _rotatedViewRotation;
+
+class _ViewportControls extends ConsumerStatefulWidget {
   const _ViewportControls({
     Key? key,
-    required this.renderTreeLoader,
-    required this.controller,
-    this.onBack,
-    this.hoveredRenderObject,
+    this.onBackPressed,
     required this.child,
   }) : super(key: key);
 
-  final RenderTreeLoader renderTreeLoader;
-
-  final TransformController controller;
-
-  final VoidCallback? onBack;
-
-  final RenderObjectData? hoveredRenderObject;
+  final VoidCallback? onBackPressed;
 
   final Widget child;
 
   @override
-  State<_ViewportControls> createState() => _ViewportControlsState();
+  _ViewportControlsState createState() => _ViewportControlsState();
 }
 
-class _ViewportControlsState extends State<_ViewportControls>
+class _ViewportControlsState extends ConsumerState<_ViewportControls>
     with SingleTickerProviderStateMixin {
-  static const _initialScale = .4;
-  static final _frontViewRotation = vm.Vector3(0, 0, 0);
-  static final _rotatedViewRotation = vm.Vector3(-20, 20, 0);
-
   late final _rotationAnimationController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 250),
@@ -352,10 +416,6 @@ class _ViewportControlsState extends State<_ViewportControls>
   void initState() {
     super.initState();
 
-    // Init the transform controller to the initial values.
-    widget.controller.scale = _initialScale;
-    widget.controller.rotation = _rotatedViewRotation;
-
     // Setup the rotation animation.
     final _rotationAnimation = _rotationAnimationController
         .drive(CurveTween(curve: Curves.easeOutCubic))
@@ -363,7 +423,7 @@ class _ViewportControlsState extends State<_ViewportControls>
 
     _rotationAnimation.addListener(() {
       final rotation = _rotationAnimation.value;
-      widget.controller.rotation = rotation;
+      ref.read(_modelController).rotation = rotation;
     });
   }
 
@@ -385,7 +445,7 @@ class _ViewportControlsState extends State<_ViewportControls>
           scaleMax: 2,
           rotationMin: vm.Vector2(-45, -45),
           rotationMax: vm.Vector2(45, 45),
-          controller: widget.controller,
+          controller: ref.watch(_modelController),
           child: widget.child,
         ),
         Positioned(
@@ -396,7 +456,7 @@ class _ViewportControlsState extends State<_ViewportControls>
             padding: ThemingUtils.spacingPadding,
             child: Row(
               children: [
-                if (widget.onBack != null)
+                if (widget.onBackPressed != null)
                   TextButton(
                     style: textButtonStyle,
                     child: Row(
@@ -405,7 +465,7 @@ class _ViewportControlsState extends State<_ViewportControls>
                         Text('Back'),
                       ],
                     ),
-                    onPressed: widget.onBack,
+                    onPressed: widget.onBackPressed,
                   ),
                 const Spacer(),
                 Builder(builder: (context) {
@@ -438,24 +498,23 @@ class _ViewportControlsState extends State<_ViewportControls>
             ),
           ),
         ),
-        Positioned(
+        const Positioned(
           bottom: 0,
           left: 0,
           right: 0,
-          child: _ViewportStatusBar(
-            renderTreeLoader: widget.renderTreeLoader,
-            hoveredRenderObject: widget.hoveredRenderObject,
-          ),
+          child: _ViewportStatusBar(),
         )
       ],
     );
   }
 
   void _animateToRotation(vm.Vector3 newRotation) {
+    final controller = ref.read(_modelController);
+
     final currentRotation = vm.Vector3(
-      widget.controller.rotationX,
-      widget.controller.rotationY,
-      widget.controller.rotationZ,
+      controller.rotationX,
+      controller.rotationY,
+      controller.rotationZ,
     );
     _rotationTween.begin = currentRotation;
     _rotationTween.end = newRotation;
@@ -483,21 +542,17 @@ Future<T?> _showMenuAtContext<T>(
   );
 }
 
-class _ViewportStatusBar extends StatelessWidget {
-  const _ViewportStatusBar({
-    Key? key,
-    required this.hoveredRenderObject,
-    required this.renderTreeLoader,
-  }) : super(key: key);
-
-  final RenderObjectData? hoveredRenderObject;
-  final RenderTreeLoader renderTreeLoader;
+class _ViewportStatusBar extends ConsumerWidget {
+  const _ViewportStatusBar({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hoveredRenderObject = ref.watch(_hoveredRenderObject);
+    final renderTreeLoader = ref.watch(_renderTreeLoader);
+
     Widget? hoveredRenderObjectType;
     if (hoveredRenderObject != null) {
-      final type = hoveredRenderObject!.type;
+      final type = hoveredRenderObject.type;
       hoveredRenderObjectType = Row(
         children: [
           Text(type),
@@ -509,7 +564,7 @@ class _ViewportStatusBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(ThemingUtils.spacing),
             ),
             child: Text(
-              renderTreeLoader.typeCounts[type]!.toString(),
+              renderTreeLoader.typeCounts[type].toString(),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimary,
               ),

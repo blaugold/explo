@@ -9,6 +9,7 @@ import 'viewer_service_extensions.dart';
 class ManualConnectExploView extends StatefulWidget {
   const ManualConnectExploView({Key? key, this.themeMode}) : super(key: key);
 
+  /// The mode to use for theming.
   final ThemeMode? themeMode;
 
   @override
@@ -29,7 +30,7 @@ class _ManualConnectExploViewState extends State<ManualConnectExploView> {
             return ExploView(
               themeMode: widget.themeMode,
               vmServiceUri: vmServiceUri,
-              onBack: () => setState(() => _vmServiceUri = null),
+              onBackPressed: () => setState(() => _vmServiceUri = null),
               onFailedToConnect: () {
                 setState(() => _vmServiceUri = null);
 
@@ -43,7 +44,7 @@ class _ManualConnectExploViewState extends State<ManualConnectExploView> {
             );
           }
 
-          return _ConnectForm(
+          return _ConnectToAppView(
             onConnect: (uri) => setState(() => _vmServiceUri = uri),
           );
         }),
@@ -52,8 +53,8 @@ class _ManualConnectExploViewState extends State<ManualConnectExploView> {
   }
 }
 
-class _ConnectForm extends StatefulWidget {
-  const _ConnectForm({
+class _ConnectToAppView extends StatefulWidget {
+  const _ConnectToAppView({
     Key? key,
     required this.onConnect,
   }) : super(key: key);
@@ -61,10 +62,10 @@ class _ConnectForm extends StatefulWidget {
   final ValueChanged<Uri> onConnect;
 
   @override
-  __ConnectFormState createState() => __ConnectFormState();
+  _ConnectToAppViewState createState() => _ConnectToAppViewState();
 }
 
-class __ConnectFormState extends State<_ConnectForm> {
+class _ConnectToAppViewState extends State<_ConnectToAppView> {
   String? _uri;
 
   @override
