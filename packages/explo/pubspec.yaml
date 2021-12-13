@@ -17,6 +17,7 @@ dependencies:
     path: ../explo_capture
   flutter:
     sdk: flutter
+  flutter_riverpod: ^1.0.2
   stream_channel: ^2.1.0
   vector_math: ^2.1.0
   vm_service: ^7.3.0

@@ -1,4 +1,4 @@
 library explo;
 
-export 'src/explo_page.dart' show ExploPage;
-export 'src/manual_connect_explo_page.dart' show ManualConnectExploPage;
+export 'src/explo_view.dart' show ExploView;
+export 'src/manual_connect_explo_view.dart' show ManualConnectExploView;

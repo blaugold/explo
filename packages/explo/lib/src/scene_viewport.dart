@@ -514,6 +514,8 @@ class ModelInteraction extends StatelessWidget {
     Key? key,
     this.scaleMin = double.minPositive,
     this.scaleMax = double.maxFinite,
+    this.rotationMin,
+    this.rotationMax,
     required this.controller,
     required this.child,
   }) : super(key: key);
@@ -523,6 +525,12 @@ class ModelInteraction extends StatelessWidget {
 
   /// The maximum scale of the model.
   final double scaleMax;
+
+  /// The minimum rotation of the model around the x and y axis.
+  final vm.Vector2? rotationMin;
+
+  /// The maximum rotation of the model around the x and y axis.
+  final vm.Vector2? rotationMax;
 
   /// The controller that controls the model's transform.
   final TransformController controller;
@@ -548,8 +556,19 @@ class ModelInteraction extends StatelessWidget {
           final scaleDelta = (details.scale - 1);
           _updateScaleWithDelta(scaleDelta * _pinchScaleFactor);
 
-          controller.rotationY += details.focalPointDelta.dx * _rotationFactor;
-          controller.rotationX += details.focalPointDelta.dy * -_rotationFactor;
+          controller.rotationY = (controller.rotationY +
+                  details.focalPointDelta.dx * _rotationFactor)
+              .clamp(
+            rotationMin?.y ?? -double.infinity,
+            rotationMax?.y ?? double.infinity,
+          );
+
+          controller.rotationX = (controller.rotationX +
+                  details.focalPointDelta.dy * -_rotationFactor)
+              .clamp(
+            rotationMin?.x ?? -double.infinity,
+            rotationMax?.x ?? double.infinity,
+          );
         },
         child: child,
       ),
