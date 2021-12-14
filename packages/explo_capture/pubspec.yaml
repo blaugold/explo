@@ -3,7 +3,7 @@ description:
   Capture render tree data of a Flutter app, for visualization with Explo.
 version: 0.1.0+1
 repository: https://github.com/blaugold/explo
-homepage: https://github.com/blaugold/explo/main/packages/explo_capture
+homepage: https://github.com/blaugold/explo/tree/main/packages/explo_capture
 issue_tracker: https://github.com/blaugold/explo/issues
 
 environment:

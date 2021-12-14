@@ -4,7 +4,7 @@ description:
   representation.
 version: 0.1.0
 repository: https://github.com/blaugold/explo
-homepage: https://github.com/blaugold/explo/main/packages/explo
+homepage: https://github.com/blaugold/explo/tree/main/packages/explo
 issue_tracker: https://github.com/blaugold/explo/issues
 
 environment:
