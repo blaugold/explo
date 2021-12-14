@@ -26,7 +26,7 @@
     "name": "Gabriel Terwesten",
     "email": "gabriel@terwesten.net"
   },
-  "version": "0.0.0",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.63.0"
   },
