@@ -12,19 +12,18 @@
 This package allows you to capture render tree data of a Flutter app, for
 visualization with [Explo].
 
-# Getting Started
+# Installation
 
-The app you want to visualize must capture render tree data and make it
-available for visualization.
+Add `explo_capture` as a dependency:
 
-First add `explo_capture` as a dependency:
-
-```yaml
-dependencies:
-  explo_capture: ...
+```shell
+flutter pub add explo_capture
 ```
 
-Then capture the part of the app's render tree that you want to visualize:
+# Usage
+
+Wrap the widget tree, whose render tree you want to capture for visualization,
+in `CaptureRenderTree`:
 
 ```dart
 import 'package:explo_capture/explo_capture.dart';
@@ -36,4 +35,15 @@ Widget build(context) {
 }
 ```
 
+You can insert multiple `CaptureRenderTree` widgets into your app. Only the
+render tree of the `CaptureRenderTree`, which has been inserted most recently
+into the widget tree, will be captured.
+
+You can leave `CaptureRenderTree` permanently in your app, since it is a no-op
+in release mode and only captures the render tree when requested by a viewer.
+
+To explore the captured render tree, go to [Explo] and follow the instructions.
+
 [explo]: https://pub.dev/packages/explo
+[explo-code]:
+  https://marketplace.visualstudio.com/items?itemName=blaugold.explo-code

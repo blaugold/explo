@@ -28,4 +28,5 @@ scripts:
     run: ./tools/explo_ide_view.sh build
   explo_ide_view:copy:vs_code:
     run: ./tools/explo_ide_view.sh copyToExploCode
-  explo_ide_view:vs_code: 'melos run explo_ide_view:build && melos run explo_ide_view:copy:vs_code'
+  explo_ide_view:vs_code:
+    'melos run explo_ide_view:build && melos run explo_ide_view:copy:vs_code'

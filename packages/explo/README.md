@@ -9,47 +9,44 @@
 
 > ⚠️ This package is **experimental**.
 
-Explo allows you to explore the render tree of a Flutter app in 3D,
-through an exploded representation.
+Explo allows you to explore the render tree of a Flutter app in 3D, through an
+exploded representation.
 
-<img src="https://github.com/blaugold/explo/raw/main/docs/images/flutter_explode_demo.gif">
+<img src="https://github.com/blaugold/explo/raw/main/docs/images/explo_demo.gif">
 
 # Getting Started
 
-You will need to have two Flutter apps running at the same time. One will
-display the exploded visualization, the other is the app you want to visualize.
+## Capturing the render tree
 
-## Instrument your app
+The app, whose render tree you want to capture for visualization, needs to be
+instrumented with [`explo_capture`][explo_capture].
 
-The app you want to visualize must be instrumented. First add `explo_capture` as
-a dependency:
+## Exploring the render tree
 
-```yaml
-dependencies:
-  explo_capture: ...
-```
+After you have setup your app to capture the render tree, you can explore it
+either by using an IDE extension, or by embedding the `ManualConnectExploView`
+into a Flutter app.
 
-Then capture the render tree of the app's widget tree that you want to
-visualize:
+### IDE extension
 
-```dart
-import 'package:explo/explo.dart';
+This is the easiest way to explore the render tree. The extension allows you to
+open a new panel, showing the render tree of any app that has been launched
+through the IDE.
 
-CaptureRenderTree(
-    child: MyInterestingAppComponent(),
-);
-```
+Currently, there is only support for VS Code, through the
+[`explo-code`][explo-code] extension.
 
-## Viewer app
+### Embedded Explo view
 
 Add `explo` as a dependency:
 
-```yaml
-dependencies:
-  explo: ...
+```shell
+flutter pub add explo
 ```
 
-Then display the `ExploView` somewhere:
+Then display the `ManualConnectExploView` in a Flutter app. You could for
+example, create a mini app, in `explo.dart` in your `lib` folder, and add the
+following code:
 
 ```dart
 import 'package:flutter/material.dart';
@@ -63,11 +60,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: ExploView(),
+      home: ManualConnectExploView(),
     );
   }
 }
 ```
 
-When you open this page, you will be asked to enter the VM service URL of the
-app you want to visualize. This URL is logged early on when an app is launched.
+Launch both your main app and the app containing `ManualConnectExploView`. When
+you open this view, you will be asked to enter the VM service URL of the app you
+want to visualize. This URL is logged early on when an app is launched.
+
+[explo_capture]: https://pub.dev/packages/explo_capture
+[explo-code]:
+  https://marketplace.visualstudio.com/items?itemName=blaugold.explo-code
