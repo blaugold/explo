@@ -1,5 +1,6 @@
 name: explo
-description: Explore the render tree of a Flutter app in 3D, through an exploded
+description:
+  Explore the render tree of a Flutter app in 3D, through an exploded
   representation.
 version: 0.1.2
 repository: https://github.com/blaugold/explo
