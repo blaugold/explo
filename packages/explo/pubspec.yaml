@@ -2,7 +2,7 @@ name: explo
 description:
   Explore the render tree of a Flutter app in 3D, through an exploded
   representation.
-version: 0.1.0
+version: 0.1.0+1
 repository: https://github.com/blaugold/explo
 homepage: https://github.com/blaugold/explo/tree/main/packages/explo
 issue_tracker: https://github.com/blaugold/explo/issues
@@ -13,7 +13,7 @@ environment:
 
 dependencies:
   collection: ^1.15.0
-  explo_capture: ^0.1.0+1
+  explo_capture: ^0.1.0+2
   flutter:
     sdk: flutter
   flutter_riverpod: ^1.0.2
